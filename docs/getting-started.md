@@ -216,7 +216,9 @@ rest of your home folder (only the JDK, Maven and the Maven cache), and has no n
 Maven build is confined the same way but keeps the network the first time, since it may have to download what the
 project needs; later builds run offline. The environment is also cut down to the path, the JDK and the locale, so
 keys and passwords in it do not reach the code. On Windows, and on a Linux without `bwrap`, there is nothing to
-confine with: the code runs as you, and each report says so. Turn it on there only for code you would build yourself.
+confine with: the code runs as you, and each report says so. Ubuntu 23.10 and later block `bwrap` through
+AppArmor unless it is allowed (an AppArmor profile for `bwrap`, or `sudo sysctl kernel.apparmor_restrict_unprivileged_userns=0`);
+until then Codist cannot confine there either, and says so. Turn it on there only for code you would build yourself.
 Each commit is built once and the last six builds are kept, so a run of commits builds quickly.
 
 Inputs are standard edge cases for each parameter type, so it finds differences in logic that takes plain values

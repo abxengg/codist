@@ -29,7 +29,11 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Install bubblewrap
-        run: sudo apt-get update && sudo apt-get install -y bubblewrap
+        run: |
+          sudo apt-get update && sudo apt-get install -y bubblewrap
+          # Ubuntu 23.10 and later restrict user namespaces through AppArmor, which stops bwrap. Codist then runs the
+          # code unconfined and says so; this test needs bwrap to work, so it lifts the restriction for the runner.
+          bwrap --ro-bind / / true || { sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 && bwrap --ro-bind / / true; }
       - name: Confined code cannot read the home folder, write outside its folder or reach the network
         run: CODIST_REQUIRE_SANDBOX=1 go test -run TestConfined -v github.com/abxengg/codist-behaviour
 
