@@ -37,6 +37,18 @@ jobs:
       - name: Confined code cannot read the home folder, write outside its folder or reach the network
         run: CODIST_REQUIRE_SANDBOX=1 go test -run TestConfined -v github.com/abxengg/codist-behaviour
 
+  # On Windows the code runs at low integrity: it may write only in Codist's work folder.
+  sandbox-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Code at low integrity cannot write in the home folder
+        shell: bash
+        run: CODIST_REQUIRE_SANDBOX=1 go test -run TestConfinedWindows -v github.com/abxengg/codist-behaviour
+
   install-unix:
     strategy:
       fail-fast: false
