@@ -1,6 +1,7 @@
 package app
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"log/slog"
@@ -14,9 +15,8 @@ import (
 	"github.com/abxengg/codist-review/risk"
 )
 
-// Reviews run in two lanes. Code checks take milliseconds, so they have their own lane and never
-// wait behind the model. The model lane works through every commit, newest first, in the
-// background; new commits and reviews a person asks for go to the front.
+// Code checks take milliseconds and have their own lane, never waiting behind the model. The model lane works
+// through the commits newest first; new commits and reviews a person asks for go to the front.
 
 type job struct {
 	sha string
@@ -38,8 +38,7 @@ func (a *App) lockSHA(sha string) func() {
 	return mu.Unlock
 }
 
-// work runs one lane. The model lane waits while the model server is away instead of failing
-// every commit in the backlog.
+// work runs one lane. The model lane waits while the model server is away instead of failing the backlog.
 func (a *App) work(ctx context.Context, q *queue, model bool) {
 	for {
 		if model && !a.modelReady() {
@@ -51,6 +50,12 @@ func (a *App) work(ctx context.Context, q *queue, model bool) {
 			}
 		}
 		j, ok := q.Pop()
+		if !ok && model && a.cfg.Deep { // nothing waits: read the newest commit not yet read deeply, lens by lens
+			if sha := review.NextDeep(a.store, a.repo, cmp.Or(a.cfg.History, 50)); sha != "" {
+				q.Push(job{sha: sha, opt: review.Options{Deep: true}}, true)
+				continue
+			}
+		}
 		if !ok {
 			select {
 			case <-ctx.Done():
@@ -65,6 +70,7 @@ func (a *App) work(ctx context.Context, q *queue, model bool) {
 		}
 		var err error
 		if model {
+			j.opt.Twice = a.riskLevel(j.sha) == "high" // a commit likely to bring a bug is read twice
 			unlock := a.lockSHA(j.sha)
 			err = a.reviewer(model).Review(ctx, j.sha, j.opt)
 			unlock()
@@ -209,8 +215,7 @@ func (a *App) reviewer(model bool) *review.Reviewer {
 	return r
 }
 
-// baseline checks the whole code once, the first time Codist runs on a repository, so problems
-// already in the code show as issues and not only those in commits it reviews. Each is credited to
+// baseline checks the whole code on the first run, so problems already there show as issues, each credited to
 // the commit that last changed its line.
 func (a *App) baseline() {
 	if _, done := a.store.GetReview(review.BaselineSHA); done {

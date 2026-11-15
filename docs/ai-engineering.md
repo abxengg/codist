@@ -41,9 +41,9 @@ combining several methods because no single one is enough. Codist follows it in 
 ## Measured and not shipped
 
 **Callers as context (chapter 6).** Showing the model the code in other files that calls the changed methods was
-measured on the 10-bug sample with `qwen2.5-coder:7b`: located 5 of 10 without callers, 4 of 10 with. No gain, so it
-stays an option (`Reviewer.Callers`) and is off. The reason it did not help is likely that most of these bugs sit
-inside one method; it may still matter for service code, which the sample lacks.
+measured on the 10-bug sample with `qwen2.5-coder:7b`: located 5 of 10 without callers, 4 of 10 with. No gain, and a
+2026 benchmark of review context (AACR-Bench) found no way of adding context that helps across models, so the option
+was removed in codist-review v0.11.0. The signatures and javadoc of called methods (`Contracts`) stay.
 
 **Counting code, not lines.** The first version counted every changed line, so a large javadoc-only commit on
 jsoup was ranked high risk: jsoup writes javadoc paragraphs without leading stars, so even a line-by-line comment
@@ -60,13 +60,15 @@ sample has none.
 
 ## Next, in order
 
-1. **Measure the learning from feedback.** Label the findings on the 10-bug sample, mark some wrong, and compare false
-   alarms with and without the examples.
-2. **A better risk model.** Add the findings marked wrong as negative labels, and compare against the newest-first
-   order on how soon the model reaches the commits with real issues.
-3. **A model router** (chapter 10). Send cheap work, such as incident summaries, to a small model and reviews to the
+What was added from the November 2026 reading of the research is in [research.md](research.md).
+
+1. **Measure the second reading.** High-risk commits are now read twice and what only the second reading reports is
+   added. Run the 10-bug sample with and without it and compare bugs named, false alarms and time.
+2. **Measure the intent labels.** Right on 4 of 4 maze-lab commits so far. On the refactoring commits and the fixes
+   of the behaviour experiment, count how often "the commit message covers this" is right.
+3. **Use the acted-on rate.** After some weeks on a real repository, turn off or reword the checks whose issues are
+   never fixed.
+4. **A model router** (chapter 10). Send cheap work, such as incident summaries, to a small model and reviews to the
    largest the machine can run.
-4. **Self-consistency on serious findings** (chapter 2). Ask twice for critical and high findings and keep those both
-   answers agree on; measure the false-alarm cost against the extra time.
-5. **Finetuning, last** (chapter 7). Only when there are a few hundred labelled findings from feedback; LoRA on the
-   local model, evaluated on the frozen holdout before use.
+5. **An adapter from feedback** (chapter 7). `codist training` writes the examples. Only with a few hundred of them:
+   LoRA on the local model as a filter of findings, evaluated on a held-out part before use.

@@ -93,6 +93,6 @@ func (a *App) repoReport(w http.ResponseWriter, r *http.Request) {
 		"lines": ix.Lines, "types": len(ix.Types), "methods": methods, "commits": a.repo.CountRef(ref), "contributors": contributors,
 		"languages": langs, "roles": roles, "services": services, "endpoints": endpoints, "calls": calls,
 		"hotspots": java.Hotspots(ix, churn, openByFile, 12), "costly": costly, "costlyTotal": costlyTotal, "largest": java.Largest(ix, 10),
-		"issues": issues, "urgency": map[string]int{}, "severity": sev,
+		"issues": issues, "urgency": map[string]int{}, "severity": sev, "outcomes": a.store.Outcomes(),
 	})
 }

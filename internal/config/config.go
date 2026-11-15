@@ -33,6 +33,7 @@ type Config struct {
 	MaxFiles  int    // files per commit the model reviews; rules see all of them
 	History   int    // how many recent commits the model reads in the background; 0 means all. Code checks cover every commit
 	Behaviour bool   // run the changed methods before and after each recent commit; off unless turned on, since it runs the project's code
+	Deep      bool   // when the model has nothing else to read, read recent commits again through each specialist lens
 	Ignore    []string
 	OpenPage  bool
 	FromLua   bool // a config.lua was found and read
@@ -48,7 +49,7 @@ func Defaults(repo string) Config {
 		DataDir:  filepath.Join(home, ".codist"),
 		Addr:     "127.0.0.1:8080",
 		ModelURL: "http://localhost:11434",
-		Model:    "qwen2.5-coder:14b",
+		Model:    "qwen3.5:9b", // found most on the test projects, in less memory than qwen2.5-coder:14b (docs/comparison.md)
 		ModelCtx: 8192,
 		PollMs:   3000,
 		MaxFiles: 8,
@@ -126,6 +127,7 @@ func (c *Config) applyLua(src string) error {
 	if v, ok := L.GetGlobal("behaviour").(lua.LBool); ok {
 		c.Behaviour = bool(v)
 	}
+	c.Deep = L.GetGlobal("deep") == lua.LTrue
 	if t, ok := L.GetGlobal("ignore").(*lua.LTable); ok {
 		c.Ignore = nil
 		t.ForEach(func(_, v lua.LValue) {
@@ -166,6 +168,7 @@ func (c *Config) applyEnv() {
 	case "0", "false", "off":
 		c.Behaviour = false
 	}
+	c.Deep = c.Deep || os.Getenv("CODIST_DEEP") == "1"
 	if os.Getenv("CODIST_NO_BROWSER") != "" {
 		c.OpenPage = false
 	}

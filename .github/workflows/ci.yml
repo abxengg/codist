@@ -20,6 +20,19 @@ jobs:
       - name: Test
         run: go test -tags "grammar_subset grammar_subset_java" ./...
 
+  # Behaviour runs are confined with bwrap on Linux; the Mac's sandbox-exec is tested on every Mac test run.
+  sandbox-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Install bubblewrap
+        run: sudo apt-get update && sudo apt-get install -y bubblewrap
+      - name: Confined code cannot read the home folder, write outside its folder or reach the network
+        run: CODIST_REQUIRE_SANDBOX=1 go test -run TestConfined -v github.com/abxengg/codist-behaviour
+
   install-unix:
     strategy:
       fail-fast: false

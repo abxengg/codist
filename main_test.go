@@ -95,6 +95,15 @@ model = { url = "http://models.example:11434" }`), 0o644)
 	}
 }
 
+// "codist training" writes examples to standard output and says how many on standard error.
+func TestTrainingCommand(t *testing.T) {
+	tr := testrepo.New(t)
+	out, code := run(t, "training "+tr.Dir, "CODIST_DATA_DIR="+t.TempDir())
+	if code != 0 || !strings.Contains(out, "0 useful and 0 wrong findings") || !strings.Contains(out, "Keep marking") {
+		t.Errorf("%d %s", code, out)
+	}
+}
+
 // The server starts, answers, and stops cleanly on an interrupt.
 func TestServe(t *testing.T) {
 	tr := testrepo.New(t)
@@ -142,4 +151,15 @@ func waitFor(t *testing.T, ok func() bool) {
 		}
 	}
 	t.Fatal("timed out")
+}
+
+// "codist top" draws a live view of a running Codist; with none there it says how to start one.
+func TestTopCommand(t *testing.T) {
+	out, code := run(t, "top http://127.0.0.1:1")
+	if code != 1 || !strings.Contains(out, "no Codist at http://127.0.0.1:1") {
+		t.Errorf("%d %s", code, out)
+	}
+	if out, _ := run(t, "help"); !strings.Contains(out, "codist top") {
+		t.Errorf("help: %s", out)
+	}
 }

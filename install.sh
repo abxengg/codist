@@ -83,7 +83,7 @@ if (have curl && curl -fsS -m 3 "$model_url/api/tags" >/dev/null 2>&1); then
   ok "model server at $model_url"
 else
   say "  -        no model server at $model_url (optional; Codist still runs its code checks)"
-  say "           to add one: install Ollama from https://ollama.com, then: ollama pull qwen2.5-coder:7b"
+  say "           to add one: install Ollama from https://ollama.com, then: ollama pull qwen3.5:9b"
 fi
 case ":$PATH:" in
   *":$BIN_DIR:"*) ;;

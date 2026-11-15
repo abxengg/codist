@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 
@@ -34,7 +35,9 @@ func (a *App) runBehaviour(ctx context.Context) {
 		a.events.publish("behaviour", map[string]string{"sha": j.sha, "status": "running"})
 		rep := a.runner.Run(ctx, j.sha)
 		raw, _ := json.Marshal(rep)
-		if err := a.store.SetBehaviour(rep.SHA, raw); err != nil {
+		raw = a.reviewer(true).Intent(ctx, rep.SHA, raw) // was each difference meant, by the commit message
+		// A "refactoring" that changed results becomes an issue of the commit.
+		if err := errors.Join(a.store.SetBehaviour(rep.SHA, raw), a.reviewer(false).RanFindings(rep.SHA)); err != nil {
 			slog.Warn("behaviour not saved", "sha", short(j.sha), "err", err)
 		}
 		a.runs.Done(j.sha)

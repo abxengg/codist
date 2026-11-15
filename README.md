@@ -6,6 +6,11 @@ watches the repository, and shows what it finds in your browser:
 - **Review**: every new commit is checked on its changed lines, then read by a local AI model. Each model claim is
   checked against the code before it is shown, and issues are followed until a later commit fixes them. A claim
   Codist cannot back, or that the code contradicts, is shown as a quiet note with the reason; it opens no issue.
+- **Every file, with reasons**: all changed files of a commit are considered. When a commit is too large for the
+  model to read in full, the model first says which files need reading and which do not, and the page shows each
+  decision and why. One click has a skipped file read after all.
+- **Numbers your documents state**: a commit that changes a number your README or spec still states with the old
+  value is reported, with the sentence quoted. No model needed.
 - **Fix**: for a real bug, the model prepares a small fix and says why. You see the current and proposed code side by
   side, the fix is built and tested in a separate copy first, and only when you approve is it committed (just its own
   files). Tell it how you want it fixed, or reject it and say why; it remembers.
@@ -17,7 +22,8 @@ watches the repository, and shows what it finds in your browser:
   last changed that line. The model can suggest a cause.
 - **Repository**: modules, HTTP routes, Feign calls, hotspots, the largest classes and methods that may be slow.
 - **Behaviour** (optional): runs the methods each commit changed on the code before and after it, with the same
-  inputs, and shows what now behaves differently, so you can say whether it was meant.
+  inputs, in a sandbox on macOS and Linux, and shows what now behaves differently. A commit that says it only
+  tidies but changes results gets an issue; the model is shown the changed results as facts.
 
 Nothing leaves your machine. Codist never changes your code unless you approve a fix.
 
@@ -26,7 +32,8 @@ Nothing leaves your machine. Codist never changes your code unless you approve a
 Codist is measured on three test projects with planted bugs. Each is built commit by commit by a script in
 [codist-eval](https://github.com/abxengg/codist-eval/tree/main/testbed), with an answer key kept outside the project.
 A bug counts as found when an alarm (not a note) lands within 6 lines of it; a clean commit fails if it gets any alarm.
-The model is `qwen2.5-coder:14b` on a 16 GB laptop.
+The model is `qwen2.5-coder:14b` on a 16 GB laptop. The default is now `qwen3.5:9b`, which found more on the same
+projects in less memory; see [docs/comparison.md](docs/comparison.md).
 
 | Project | What it is | Bugs found | Clean commits with an alarm |
 |---|---|---|---|
@@ -81,7 +88,7 @@ You need git. Everything else is optional: without a model server Codist still r
 review, install [Ollama](https://ollama.com) and pull a model:
 
 ```bash
-ollama pull qwen2.5-coder:7b       # about 5 GB; use :14b with 16 GB of memory or more
+ollama pull qwen3.5:9b             # about 8 GB; the default. On 8 GB of memory use qwen2.5-coder:7b
 ```
 
 The full walk-through, with settings and fixes for common problems, is in
@@ -92,7 +99,7 @@ The full walk-through, with settings and fixes for common problems, is in
 Put settings in `.codist/config.lua` in the repository. All are optional:
 
 ```lua
-model = { url = "http://localhost:11434", name = "qwen2.5-coder:7b", context = 8192 }
+model = { url = "http://localhost:11434", name = "qwen3.5:9b", context = 8192 }
 max_files = 8            -- changed files per commit the model reads; checks read all of them
 history = 50             -- recent commits the model reads in the background; 0 for all. Checks cover every commit
 ignore = { "target/", "build/", "generated/" }

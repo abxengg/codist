@@ -68,8 +68,8 @@ Codist does not contain an AI model. You run a model server and Codist connects 
 [Ollama](https://ollama.com):
 
 ```bash
-ollama pull qwen2.5-coder:7b     # about 5 GB, fine on 8 GB of memory
-ollama pull qwen2.5-coder:14b    # about 9 GB, better reviews, wants 16 GB
+ollama pull qwen3.5:9b           # about 8 GB, the default; wants 16 GB of memory
+ollama pull qwen2.5-coder:7b     # about 5 GB, for 8 GB of memory: faster, finds less
 ```
 
 Ollama listens on `http://localhost:11434`, which is where Codist looks. For another address or model, see
@@ -103,11 +103,12 @@ To look at another repository, run `codist /path/to/repo`. `codist --no-open` sk
 Put settings in `.codist/config.lua` in the repository. All are optional:
 
 ```lua
-model = { url = "http://localhost:11434", name = "qwen2.5-coder:7b", context = 8192 }
-max_files = 8            -- changed files per commit the model reads; checks read all of them
+model = { url = "http://localhost:11434", name = "qwen3.5:9b", context = 8192 }
+max_files = 8            -- above this many changed files the model first decides which ones need reading
 history = 50             -- recent commits the model reads in the background; 0 for all
 ignore = { "target/", "build/", "generated/" }
 behaviour = false        -- run changed methods before and after each recent commit (see below)
+deep = false             -- when the model is idle, read recent commits again through specialist lenses
 ```
 
 The file is Lua, so a team can compute values instead of copying them; it runs with no file, network or OS access.
@@ -125,6 +126,7 @@ Environment variables override it for one run:
 | `CODIST_MODEL_REVIEW=false` | code checks only |
 | `CODIST_HISTORY` | how many recent commits the model reads; 0 for all |
 | `CODIST_BEHAVIOUR=1` | turn on running changed methods (see below) |
+| `CODIST_DEEP=1` | read recent commits again, more deeply, whenever the model has nothing else to do |
 | `CODIST_DATA_DIR` | where Codist keeps its data (default `~/.codist`) |
 | `CODIST_HOSTS` | extra host names the pages may reach Codist by, separated by commas (see below) |
 | `CODIST_LOG` | how much it logs: `debug`, `info` (default), `warn` or `error` |
@@ -145,10 +147,32 @@ for each review, so edits apply to the next commit it reads.
 
 - **Review** lists commits newest first. Pick one to see its diff with issues next to the lines. Issues from code
   checks are exact; issues from the model show the line it quoted, and claims Codist could not confirm are shown as
-  notes. Mark an issue resolved by hand, or let the commit that fixes it close it.
+  notes, as is anything the model itself rates minor. A merge commit is reviewed on what was written by hand to
+  settle its conflicts. Mark an issue resolved by hand, or let the commit that fixes it close it.
+- **How far to believe a finding**: each one is tagged **proven** (an exact check found it, or running the code
+  showed it), **likely** (the model found it, quoted the code, and the claim passed Codist's checks) or **to judge**
+  (Codist could not back it, the model rated it minor, or a run showed a change the commit message does not
+  explain). Only proven and likely findings open issues.
+- **Deep pass** (`deep = true`): when the model has nothing else to read, it reads recent commits again, once as a
+  specialist in failures (nulls, exceptions, loops) and once as a specialist in your team's rules, and adds what
+  only those readings find. New commits always come first. It uses the machine while you are not waiting for it.
+- **Files**: every changed file of a commit is considered. Code checks read all of them. For the model, each file
+  is either read or skipped with a reason: tests and files where only comments changed are skipped by Codist; when
+  a commit changes more than `max_files` files, the model first looks at a short summary of each change and says
+  which ones a reviewer has to read (a changed condition or query, yes; a renamed field or a new getter, no; when
+  unsure, read). The commit's **Files** card shows each decision, its reason and who made it, and **Check this
+  file** has the model read a skipped file after all. Your request is remembered for later reviews of that commit.
 - **Fix**: on a real bug, press **Fix** to get a prepared change with the reason, the current and proposed code side by
   side, and whether it still builds and passes the tests. **Apply & commit** commits just that fix; **Suggest how to
   fix it…** asks for it your way; **Reject…** with a reason is remembered for later fixes.
+- **What the model did, on each commit**: every finding the model kept or demoted has **How Codist decided**, the
+  checks it went through in order (the quote, exact checks, the second look with the line it quoted as proof, the
+  choice between the claim and its opposite, the learned filter). The **Model** card shows what the model
+  understood in each file it read (what changed, who sees a different result, what your rules say it must be) and
+  every claim Codist threw away, with why: a quote not in the code, a line a check already reports, a repeat.
+- **`codist top`**, in a second terminal while Codist runs: a live view of the lanes, the model call under way (its
+  stage, whether it is still reading the prompt or writing, tokens in and out, speed, the last lines it wrote),
+  totals, recent calls and the log. `codist top http://host:port` watches a Codist on another address. Press q.
 - **Activity** shows the three lanes (code checks, AI model, behaviour runs) with what runs now, what waits and what
   finished, every model call with the exact prompt and reply, and the live log. Use it to see why a review is slow.
 - **Graph** draws services, then classes, then methods, with Feign calls between services. Pick a commit to see
@@ -157,12 +181,25 @@ for each review, so edits apply to the next commit it reads.
   that last changed it, and a short list of suspect commits; with a model it suggests causes and checks every line
   it quotes.
 - **Repository**: modules and their ports, routes and who calls them, hotspots that change often and have open
-  issues, and methods that may be slow.
+  issues, and methods that may be slow. **What became of the findings** shows, for each code check and for the
+  model, how many issues it raised, how many a later commit fixed and how you judged them. A check nobody acts on
+  is noise; this table is where you see it.
+- **Numbers the documents state**: when a commit changes one number on a line (`DIM_EVERY = 20.0` to `10.0`) and a
+  Markdown, AsciiDoc or text file in the repository still states the old number about the same thing, Codist reports
+  that the two disagree and quotes the document. It needs no model. Changing the document in the same commit is
+  taken as a decision and not reported; putting the value back closes the issue.
 
 - **Behaviour**, when turned on: for each recent commit, Codist builds the code before and after it, calls the
   methods it changed (and the methods that call them) with the same inputs, and lists every call whose result
-  changed: "before: 1200, after: 1201". You decide whether each change was meant. A commit that only adds code, or
-  that it cannot build, says why it was not run.
+  changed: "before: 1200, after: 1201". You decide whether each change was meant. With a model, each difference
+  also says whether the commit message covers it, and the card counts those it does not. That is the model's
+  reading and is marked as such; no difference is ever hidden because of it. A commit that only adds code, or that
+  it cannot build, says why it was not run.
+  A commit whose message says it only tidies (simplify, refactor, rename, clean up, extract, inline) and whose
+  methods now return something else gets an issue, `behaviour-change`, with the calls that differ; it needs no
+  model. So does a call that returned before the commit and now crashes, and a result that was never negative and
+  now is. Any other change of results is a note beside the code for you to judge. The model, when it reads the
+  commit, is shown the changed results of the file it reads as facts.
 
 The branch picker in the top bar shows any branch, read from git, without changing your checkout.
 
@@ -171,21 +208,34 @@ The branch picker in the top bar shows any branch, read from git, without changi
 Turn it on per repository with `behaviour = true` in `.codist/config.lua` and `codist trust` (once, see
 [Settings](#4-settings)), or `CODIST_BEHAVIOUR=1` for one run. It
 needs a JDK 17 or later (`java` and `javac`) and, for Maven projects, the project's `mvnw` or `mvn`; Gradle is not
-supported yet. It is off by default because it runs your project's code. Codist runs it in a scratch folder with an
-environment cut down to the path, the JDK and the locale, so keys and passwords in your environment do not reach it.
-This is not a sandbox: the code and its Maven build run as you and can read your files, and Maven downloads what
-the project needs the first time (later builds run offline). Turn it on only for code you would build yourself.
+supported yet. It is off by default because it runs your project's code.
+
+Codist confines that code where the operating system offers a way: `sandbox-exec` on macOS (built in) and `bwrap`
+on Linux (the `bubblewrap` package). Confined, the code can write only in Codist's scratch folder, cannot read the
+rest of your home folder (only the JDK, Maven and the Maven cache), and has no network while its methods run. The
+Maven build is confined the same way but keeps the network the first time, since it may have to download what the
+project needs; later builds run offline. The environment is also cut down to the path, the JDK and the locale, so
+keys and passwords in it do not reach the code. On Windows, and on a Linux without `bwrap`, there is nothing to
+confine with: the code runs as you, and each report says so. Turn it on there only for code you would build yourself.
 Each commit is built once and the last six builds are kept, so a run of commits builds quickly.
 
 Inputs are standard edge cases for each parameter type, so it finds differences in logic that takes plain values
 best. A service that needs a database or another service is not covered yet.
+
+## Training data from your judgements (optional)
+
+`codist training > findings.jsonl` writes one example for each model finding whose outcome is known: marked useful,
+marked wrong, or fixed by a later commit. Each line is a chat (`messages` with system, user and assistant) that
+ends in the word `useful` or `wrong`, which is the format MLX, Unsloth and llama.cpp's finetune read. Codist does not
+train anything. An adapter made from this file can be put on the Ollama model with `ADAPTER` in a Modelfile. A few
+hundred examples are a sensible minimum; the command says how many there are. Nothing leaves the machine.
 
 ## Common problems
 
 **"no model server at http://localhost:11434"**: start Ollama (open the app, or run `ollama serve`), or set
 `model.url` to where your server runs. Codist checks again every 30 seconds.
 
-**"qwen2.5-coder:7b is not on the server"**: run `ollama pull qwen2.5-coder:7b`, or set `model.name` to a model you
+**"qwen3.5:9b is not on the server"**: run `ollama pull qwen3.5:9b`, or set `model.name` to a model you
 have (`ollama list`).
 
 **"cannot listen on 127.0.0.1:8080"**: something else uses the port. Run `PORT=8090 codist`.
@@ -196,7 +246,7 @@ run `xattr -d com.apple.quarantine ~/.local/bin/codist`.
 **"Codist only answers its own pages"**: you opened it by a name other than `localhost`, or another site tried to
 call it. Open `http://localhost:8080`, or allow the name with `CODIST_HOSTS`.
 
-**Reviews are slow**: that is the model. Use `qwen2.5-coder:7b`, lower `history`, or set `max_files` smaller. Code
+**Reviews are slow**: that is the model. Use `qwen2.5-coder:7b` (faster, finds less), lower `history`, or set `max_files` smaller. Code
 check results show at once either way.
 
 **Start over**: stop Codist and delete `~/.codist/<repo>.db`.

@@ -65,7 +65,7 @@ try {
   Ok "model server at $modelUrl"
 } catch {
   Write-Host "  -        no model server at $modelUrl (optional; Codist still runs its code checks)"
-  Write-Host '           to add one: install Ollama from https://ollama.com, then: ollama pull qwen2.5-coder:7b'
+  Write-Host '           to add one: install Ollama from https://ollama.com, then: ollama pull qwen3.5:9b'
 }
 Write-Host ''
 Write-Host 'Next: cd into a Java repository and run  codist'

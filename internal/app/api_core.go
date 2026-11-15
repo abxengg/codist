@@ -34,17 +34,6 @@ func (a *App) status(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// features turns on only what this version has: Review, Graph, Incidents and Repository.
-func (a *App) features(w http.ResponseWriter, r *http.Request) {
-	web.JSON(w, map[string]any{
-		"menus": map[string]bool{"review": true, "repo": true, "incidents": true, "branches": false, "mine": false, "team": false,
-			"release": false, "activity": true, "memory": false},
-		"panels":   map[string]bool{"issues": true, "commit": true, "code": true, "ask": false},
-		"features": map[string]bool{"explorer": true, "branchGraph": false, "branchSwitcher": true, "fix": true, "reword": false, "localPlan": false},
-		"sources":  []string{},
-	})
-}
-
 func (a *App) refs(w http.ResponseWriter, r *http.Request) {
 	current := a.repo.Branch()
 	out := []map[string]any{}
@@ -90,9 +79,4 @@ func (a *App) file(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	web.JSON(w, map[string]string{"content": string(src)})
-}
-
-// working reports uncommitted changes. This version reviews commits only.
-func (a *App) working(w http.ResponseWriter, r *http.Request) {
-	web.JSON(w, map[string]any{"files": []any{}, "changes": []any{}, "findings": 0})
 }

@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -236,9 +237,8 @@ func TestReviewLifecycle(t *testing.T) {
 	if e.get("/api/commits/nope", nil) != 404 || e.call("POST", "/api/commits/nope/review", "", nil) != 404 {
 		t.Error("unknown commit")
 	}
-	var impact map[string]any
-	if e.get("/api/commits/"+e.repo.Bug+"/impact", &impact); impact["sha"] != e.repo.Bug {
-		t.Errorf("impact %v", impact)
+	if e.get("/api/commits/"+e.repo.Bug+"/impact", nil) != 404 || e.get("/api/working", nil) != 404 {
+		t.Error("parts that are not in this version say so")
 	}
 
 	// Issues: the fixed one, and the slow call the first-run check found in the old code.
@@ -389,10 +389,15 @@ func TestGraphRepoAndFiles(t *testing.T) {
 	if e.get("/api/file?path=missing.java", nil) != 404 {
 		t.Error("missing file")
 	}
-	var working map[string]any
-	if e.get("/api/working", &working); working["findings"] != float64(0) {
-		t.Errorf("working %v", working)
+	type outcome struct {
+		Source       string
+		Found, Fixed int
 	}
+	waitFor(t, "the fixed empty catch to be counted", func() bool { // the fix commit is reviewed in the background
+		var rep struct{ Outcomes []outcome }
+		e.get("/api/repo", &rep)
+		return slices.Contains(rep.Outcomes, outcome{"empty-catch", 1, 1})
+	})
 }
 
 func TestBranches(t *testing.T) {
@@ -1057,4 +1062,49 @@ func TestManyNewCommitsAtOnce(t *testing.T) {
 	}
 	e.repo.Git("merge", "-q", "--ff-only", tip)
 	e.reviewed(before+60, false)
+}
+
+// A commit's page says which files the model read and why; asking for one file queues the commit with that file.
+func TestReadingPlanOnThePage(t *testing.T) {
+	e := start(t, nil)
+	e.reviewed(3, true)
+	type plan struct {
+		Plan []struct{ Path, Decision, Why, By string }
+	}
+	var d plan
+	e.get("/api/commits/"+e.repo.Init, &d)
+	if len(d.Plan) != 8 || d.Plan[0].Decision != "read" || d.Plan[0].By != "codist" {
+		t.Fatalf("the first commit's eight Java files, all read: %+v", d.Plan)
+	}
+	if e.call("POST", "/api/commits/"+e.repo.Init+"/review?file="+testrepo.ServicePath, "", nil) != 200 {
+		t.Fatal("asking for one file")
+	}
+	waitFor(t, "the file a person asked for", func() bool {
+		var d plan
+		e.get("/api/commits/"+e.repo.Init, &d)
+		for _, p := range d.Plan {
+			if p.Path == testrepo.ServicePath && p.By == "you" {
+				return true
+			}
+		}
+		return false
+	})
+}
+
+// With deep turned on and nothing waiting, the model lane reads the commits again through each specialist lens.
+func TestDeepPassWhenIdle(t *testing.T) {
+	e := start(t, func(c *config.Config) { c.Deep = true })
+	waitFor(t, "every commit read deeply", func() bool {
+		for _, sha := range []string{e.repo.Init, e.repo.Bug, e.repo.Fix} {
+			raw, ok := e.app.store.Stats(sha)
+			if !ok || !strings.Contains(string(raw), `"deep":true`) {
+				return false
+			}
+		}
+		return true
+	})
+	time.Sleep(200 * time.Millisecond)
+	if n := e.app.models.Length(); n != 0 {
+		t.Errorf("%d commits queued after every one was read deeply", n)
+	}
 }

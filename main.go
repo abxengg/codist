@@ -17,12 +17,14 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
 
 	"github.com/abxengg/codist-git"
 	"github.com/abxengg/codist-model"
+	"github.com/abxengg/codist-review"
 	"github.com/abxengg/codist-review/store"
 	"github.com/abxengg/codist/internal/app"
 	"github.com/abxengg/codist/internal/config"
@@ -39,11 +41,17 @@ func main() {
 	activity.Watch()
 	args := os.Args[1:]
 	if len(args) > 0 && (args[0] == "help" || args[0] == "-h" || args[0] == "--help") {
-		fmt.Println("codist [path]    review the repository at path (default: here)\ncodist doctor    show what is installed and what is missing\ncodist trust     let this repository's .codist/config.lua turn on running its code and name a model on another machine")
+		fmt.Println("codist [path]    review the repository at path (default: here)\ncodist doctor    show what is installed and what is missing\ncodist top       watch what the model is doing, live, in this terminal\ncodist trust     let this repository's .codist/config.lua turn on running its code and name a model on another machine\ncodist training  write the model's findings you judged, or that were fixed, as training examples (JSON lines)")
+		return
+	}
+	if len(args) > 0 && args[0] == "top" { // a live view, in this terminal, of a Codist already running
+		if err := activity.Top(cmp.Or(strings.Join(args[1:], ""), "http://localhost:8080"), os.Stdout); err != nil {
+			fail(err.Error())
+		}
 		return
 	}
 	cmd := ""
-	if len(args) > 0 && (args[0] == "doctor" || args[0] == "trust") {
+	if len(args) > 0 && (args[0] == "doctor" || args[0] == "trust" || args[0] == "training") {
 		cmd, args = args[0], args[1:]
 	}
 	dir := "."
@@ -62,6 +70,14 @@ func main() {
 	cfg, err := config.Load(repo.Root)
 	if err != nil {
 		fail(err.Error())
+	}
+	if cmd == "training" {
+		note, err := review.ExportTraining(cfg.DataDir, repo, os.Stdout)
+		if err != nil {
+			fail(err.Error())
+		}
+		fmt.Fprintln(os.Stderr, note)
+		return
 	}
 	for _, a := range args {
 		if a == "--no-open" {

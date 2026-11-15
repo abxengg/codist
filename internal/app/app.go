@@ -100,17 +100,15 @@ func (a *App) routes() {
 	activity.Routes(h, a.checks, a.models, a.runs) // the Activity page: lanes, model calls, live log
 	a.fixer.Routes(h)                              // prepare, check, apply and discard fixes; remember rejections
 	h("GET /api/status", a.status)
-	h("GET /api/features", a.features)
+	h("GET /api/features", ui.Features)
 	h("GET /api/events", a.events.serve)
 	h("GET /api/refs", a.refs)
 	h("POST /api/refs/follow", a.follow)
 	h("GET /api/file", a.file)
-	h("GET /api/working", a.working)
 	h("GET /api/graph", a.graph)
 	h("GET /api/graph/calls", a.calls)
 	h("GET /api/commits", a.commits)
 	h("GET /api/commits/{sha}", a.commit)
-	h("GET /api/commits/{sha}/impact", a.impact)
 	h("POST /api/commits/{sha}/review", a.requestReview)
 	h("POST /api/commits/{sha}/behaviour", a.requestBehaviour)
 	h("GET /api/issues", a.issues)

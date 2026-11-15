@@ -57,8 +57,7 @@ func (a *App) commitInfo(sha string) (git.Commit, bool) {
 
 // reviewStatus is a commit's review state as the interface knows it.
 func (a *App) reviewStatus(sha string, reviews map[string]store.Review) string {
-	// A commit whose checks are done shows their result; the model reading it later is shown in the
-	// review itself, so a long backlog does not hide every result behind "queued".
+	// A commit with its checks done shows them; the model reading it later is shown in the review itself.
 	rv, ok := reviews[sha]
 	switch {
 	case a.models.Running(sha) || ok && rv.Status == "running":
@@ -217,9 +216,9 @@ func (a *App) commit(w http.ResponseWriter, r *http.Request) {
 	web.JSON(w, map[string]any{
 		"analysis":  map[string]any{"commit": commitOf(c), "files": files, "changed": changed, "impacted": impacted},
 		"review":    a.reviewJSON(c, changes),
-		"behaviour": a.behaviourOf(c.SHA),
-		"fixes":     map[string]string{},
-		"resolved":  resolved,
+		"behaviour": a.behaviourOf(c.SHA), "plan": a.store.Plan(c.SHA), "trail": a.store.Trail(c.SHA), // what the model read, skipped, kept, dropped
+		"fixes":    map[string]string{},
+		"resolved": resolved,
 	})
 }
 
@@ -333,15 +332,9 @@ func (a *App) requestReview(w http.ResponseWriter, r *http.Request) {
 		web.Error(w, http.StatusNotFound, "That commit is not in the repository.")
 		return
 	}
-	a.models.Push(job{sha: c.SHA, opt: review.Options{}}, true)
+	a.models.Push(job{sha: c.SHA, opt: review.Options{Force: r.URL.Query()["file"]}}, true) // ?file= reads a skipped file
 	a.events.publish("review", map[string]any{"sha": c.SHA, "status": "queued"})
 	web.JSON(w, map[string]any{"sha": c.SHA, "queued": true})
-}
-
-// impact is the call-level impact report. This version shows impact through the graph instead.
-func (a *App) impact(w http.ResponseWriter, r *http.Request) {
-	web.JSON(w, map[string]any{"sha": r.PathValue("sha"), "changed": []any{}, "callers": []any{}, "callerCount": 0, "possible": 0,
-		"routes": []any{}, "tests": []any{}, "classes": []any{}})
 }
 
 var kinds = map[string]string{"bug": "Bug", "security": "Security", "performance": "Performance", "spring": "Spring"}
@@ -400,8 +393,7 @@ func (a *App) issues(w http.ResponseWriter, r *http.Request) {
 	web.JSON(w, map[string]any{"issues": out, "counts": counts, "openBySeverity": bySev})
 }
 
-// feedback records a person's judgement of an issue. "wrong" also sets the issue aside, and later reviews leave it
-// out; clearing it opens the issue again. The judgements are kept as evaluation data.
+// feedback records a person's judgement of an issue; "wrong" sets it aside until the judgement is cleared.
 func (a *App) feedback(w http.ResponseWriter, r *http.Request) {
 	var in struct {
 		Verdict string `json:"verdict"` // useful, wrong, or "" to clear
@@ -456,8 +448,7 @@ func (a *App) setIssue(w http.ResponseWriter, r *http.Request, state string) {
 	web.JSON(w, map[string]string{"state": state})
 }
 
-// lastSeen is the commit an issue was last reported in. The first-run scan of the whole code is not
-// a commit, so its issues count as last seen where they started.
+// lastSeen is the commit an issue was last reported in; a first-run issue counts where it started.
 func lastSeen(sha, first string) string {
 	if sha == review.BaselineSHA {
 		return first
