@@ -7,7 +7,7 @@ toolchain go1.26.10
 require github.com/yuin/gopher-lua v1.1.2
 
 require (
-	github.com/abxengg/codist-behaviour v0.5.0
+	github.com/abxengg/codist-behaviour v0.5.1
 	github.com/abxengg/codist-git v0.7.0
 	github.com/abxengg/codist-java v0.5.0
 	github.com/abxengg/codist-model v0.6.0
