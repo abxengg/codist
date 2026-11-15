@@ -176,3 +176,9 @@ checks caught 1 of 42 other bugs of their kinds and matched 0 lines of clean cod
 surprising to the model than the line it replaced in 37 of 40, by 0.38 nats a piece on average. It compares a line
 with its own changed twin, so it supports surprise as a ranking of where to read, not as a finding.
 
+**The deep pass** (`CODIST_DEEP=1`, 90 idle minutes on maze-lab after its review, 106 model calls): every one of the 25
+commits was read again through both lenses, about two minutes a commit and 26 for the 14-file first commit. It added
+one alarm, true, on a bug the spec-number check had already raised ("Javadoc claims 1/60s but code uses 1/30s,
+violating spec rule 2"), and two notes that look wrong. No new bug was found (18 of 19 before and after) and no clean
+commit got an alarm. On this project it did not pay for its time; it stays off unless turned on.
+
