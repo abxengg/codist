@@ -54,9 +54,11 @@ model does a narrow job and something exact does the rest. Built from that list:
 | Properties checked by running | [DiffTestGen](https://arxiv.org/pdf/2607.16024) | Two exact ones without a model: a call must not start crashing; a result that was never negative must not become negative |
 | Show degrees of belief | precision against recall | Findings are tagged proven, likely or to judge |
 
-Not built yet: the model writing checks from fixed bugs ([KNighter](https://arxiv.org/abs/2503.09002)), facts per method
-joined exactly ([LLMDFA](https://arxiv.org/abs/2402.10754)), and token surprise as a ranking
-([naturalness of buggy code](https://arxiv.org/abs/1506.01159)).
+Built after: checks the model writes from fixed bugs (learned checks, proved against the fix and the rest of the
+code before they are kept, as [KNighter](https://arxiv.org/abs/2503.09002) does), method promises compared before and
+after a commit and joined to the callers from the call graph (as [LLMDFA](https://arxiv.org/abs/2402.10754) splits
+the job), and an experiment on whether a local model finds planted lines more surprising than the originals
+([naturalness of buggy code](https://arxiv.org/abs/1506.01159)). Results are in [comparison.md](comparison.md).
 
 ## What was removed
 

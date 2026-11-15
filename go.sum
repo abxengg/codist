@@ -1,5 +1,5 @@
-github.com/abxengg/codist-behaviour v0.5.2-0.20261115151253-e034b297db4d h1:1pRHdWpdQUPz2eLLWXrGBUJX2TAn6A4lXqideUYVFu4=
-github.com/abxengg/codist-behaviour v0.5.2-0.20261115151253-e034b297db4d/go.mod h1:olJBrLioHP5mFq0uHFcrQgHE4LrDtKOVrep2+iV3BFU=
+github.com/abxengg/codist-behaviour v0.6.0 h1:PduvKzeS24iMi3dkhwJ2i3MlyYcwFE/1EARskajCzfM=
+github.com/abxengg/codist-behaviour v0.6.0/go.mod h1:olJBrLioHP5mFq0uHFcrQgHE4LrDtKOVrep2+iV3BFU=
 github.com/abxengg/codist-fix v0.4.0 h1:AiduZj9UDblsYZ14Bx7dlyNMI+hTM5IH/dPQCzYfdRQ=
 github.com/abxengg/codist-fix v0.4.0/go.mod h1:IAcdd8OZ36uipIfdoi3kIMJ/zTWGoVrqpZBIowbjA10=
 github.com/abxengg/codist-git v0.7.0 h1:Bbii91WYN4qTjLqzEDw0U/Ba/n+7ErCHUhcTW0x5Gn0=
@@ -8,10 +8,10 @@ github.com/abxengg/codist-java v0.5.0 h1:mhX+u6N9Up/I/cIBjLG1qfo8Cz8uOyF0T5pyc3w
 github.com/abxengg/codist-java v0.5.0/go.mod h1:kvwoO80CMgn6PbB8VkNkDraxYZ7JXgwI+XhgeIQHPuQ=
 github.com/abxengg/codist-model v0.6.0 h1:CUa5Crwc7JLD5wJBDJp1w8HSv3Rr28n3iA89jgCZbOI=
 github.com/abxengg/codist-model v0.6.0/go.mod h1:Zh7m6Ff4ETQN4CWi6oaV7ySWAny8bcniKjHMcdpmOCc=
-github.com/abxengg/codist-review v0.11.0 h1:WABr0Shw8nH4NPyuPq4YSQS/pmXIOdvgP9TlNe+sv5Q=
-github.com/abxengg/codist-review v0.11.0/go.mod h1:pXLV+HjAeuT47sbYiRqrn5tY0aphxoEyfVvMAG35+3c=
-github.com/abxengg/codist-ui v0.9.0 h1:/Sa9DdpRzNo2umvSbCX6ze68t/Z//dpvxP5d4wRpRKw=
-github.com/abxengg/codist-ui v0.9.0/go.mod h1:FRG6U2T+58LEM6/CVXML1+DWsu6R7CLYTR9V3270+QM=
+github.com/abxengg/codist-review v0.12.0 h1:Eewugt9ZwxPnilITMh7oMYc+UVIWgL/dFd7CRB8j8iU=
+github.com/abxengg/codist-review v0.12.0/go.mod h1:pXLV+HjAeuT47sbYiRqrn5tY0aphxoEyfVvMAG35+3c=
+github.com/abxengg/codist-ui v0.10.0 h1:cbWZSuxs4quBW0C8plrWzSWXhoEwV4rd8bammFWY/4E=
+github.com/abxengg/codist-ui v0.10.0/go.mod h1:FRG6U2T+58LEM6/CVXML1+DWsu6R7CLYTR9V3270+QM=
 github.com/dustin/go-humanize v1.1.0 h1:dbKTrvD0klcbBV/h4AWJdMuZogJACoMlvWIWZ5b2xWg=
 github.com/dustin/go-humanize v1.1.0/go.mod h1:hc1CvRkJMsgxqjmjMQF3QNRAZBwY8AXBAzKYoSX9sFI=
 github.com/google/pprof v0.0.0-20261016150608-1facf8f91b50 h1:PlNWJRxu5APSV0pWqfIsZ0qt9OOGHSWfZQ4zvx+WgWs=

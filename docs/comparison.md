@@ -152,3 +152,27 @@ never typed in a reply. Clean runs with those changes:
 reason unrelated to the claim, and from the judge not seeing a method the claim named; v0.7.0 counts a choice only
 when its reasons speak of the claim, and shows the judge the types the claim names first. Those two changes are not
 yet measured on the labs. To keep the 14b, set `model = { name = "qwen2.5-coder:14b" }` or `CODIST_MODEL`.
+
+## v0.8.0 against v0.7.0 (2026-11-15 and 16, `qwen3.5:9b`, clean runs)
+
+| Project | Bugs found, v0.7.0 | Bugs found, v0.8.0 build | Clean commits with a model alarm, v0.8.0 build | Model time per commit |
+|---|---|---|---|---|
+| records-lab | 17 of 19 | 18 of 19 | 1 of 5 | 52 s, then 91 s |
+| shop-lab | 20 of 24 | 21 of 24 | 0 of 6 | 75 s, then 82 s |
+| maze-lab | 18 of 19 | 18 of 19 | 0 of 3 | 100 s, then 102 s |
+| all | 55 of 62 | 57 of 62 | 1 of 14 (v0.7.0: 1 of 14) | |
+
+The two extra bugs are within the difference between two runs of one version: on maze-lab the total stayed at 18 while
+the missed bug changed. The v0.8.0 build that was measured asked about method promises in every review: six findings
+(five notes, one alarm), none on a planted bug, for 24 to 70% more model calls. So in the released v0.8.0 those
+questions are asked only in the deep pass.
+
+**Learned checks** (`go run ./mutants -learn` in codist-eval): a check learned for 5 of 15 kinds of planted bug; those
+checks caught 1 of 42 other bugs of their kinds and matched 0 lines of clean code.
+
+**A second reading** (`go run ./review` in codist-eval, 10 real bugs): 3 of 10 located with one reading, 3 of 10 with two.
+
+**Line surprise** (`surprise/surprise.py` in codist-eval, 40 planted bugs on maze-lab): the planted line was more
+surprising to the model than the line it replaced in 37 of 40, by 0.38 nats a piece on average. It compares a line
+with its own changed twin, so it supports surprise as a ranking of where to read, not as a finding.
+

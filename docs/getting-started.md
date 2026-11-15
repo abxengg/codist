@@ -170,6 +170,14 @@ for each review, so edits apply to the next commit it reads.
   choice between the claim and its opposite, the learned filter). The **Model** card shows what the model
   understood in each file it read (what changed, who sees a different result, what your rules say it must be) and
   every claim Codist threw away, with why: a quote not in the code, a line a check already reports, a repeat.
+- **Checks learned from your fixes**: when the model reads a commit that fixes something, it writes a pattern for
+  the mistake as it was written. Codist keeps the pattern only if it matches the old line, not the fixed one, and
+  almost nothing else in your code; from then on it runs with the code checks, without the model, and a finding
+  from it says which fix it was learned from. Measured on planted bugs it rarely
+  generalises (1 of 42 caught, no false matches): expect it to catch the same mistake coming back, not its relatives.
+- **Changed promises across files** (only in the deep pass, `deep = true`): when a commit changes a method that other files call, the model says what the
+  method promised before and after (can it return null, what can it throw). If the promise got weaker, the finding
+  names the callers in other files, and marks those that use the result at once.
 - **`codist top`**, in a second terminal while Codist runs: a live view of the lanes, the model call under way (its
   stage, whether it is still reading the prompt or writing, tokens in and out, speed, the last lines it wrote),
   totals, recent calls and the log. `codist top http://host:port` watches a Codist on another address. Press q.
@@ -216,7 +224,9 @@ rest of your home folder (only the JDK, Maven and the Maven cache), and has no n
 Maven build is confined the same way but keeps the network the first time, since it may have to download what the
 project needs; later builds run offline. The environment is also cut down to the path, the JDK and the locale, so
 keys and passwords in it do not reach the code. On Windows, and on a Linux without `bwrap`, there is nothing to
-confine with: the code runs as you, and each report says so. Ubuntu 23.10 and later block `bwrap` through
+confine with: the code runs as you, and each report says so. On Windows the code runs at low integrity, the level
+browsers use for web pages: it can write only in Codist's work folder, but it can still read your files and use the
+network, and the Maven build is not confined; reports say so. Ubuntu 23.10 and later block `bwrap` through
 AppArmor unless it is allowed (an AppArmor profile for `bwrap`, or `sudo sysctl kernel.apparmor_restrict_unprivileged_userns=0`);
 until then Codist cannot confine there either, and says so. Turn it on there only for code you would build yourself.
 Each commit is built once and the last six builds are kept, so a run of commits builds quickly.
