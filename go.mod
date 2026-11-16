@@ -12,7 +12,7 @@ require (
 	github.com/abxengg/codist-java v0.5.0
 	github.com/abxengg/codist-model v0.6.0
 	github.com/abxengg/codist-review v0.13.0
-	github.com/abxengg/codist-ui v0.10.0
+	github.com/abxengg/codist-ui v0.11.0
 )
 
 require (
