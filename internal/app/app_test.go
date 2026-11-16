@@ -651,6 +651,19 @@ func TestHistoryLimit(t *testing.T) {
 	}
 }
 
+// With older turned on, the model reads its history first and then, with nothing waiting, the commits before it.
+func TestOlderCommitsWhenIdle(t *testing.T) {
+	e := start(t, func(c *config.Config) { c.History, c.Older = 1, true })
+	waitFor(t, "every commit read by the model", func() bool {
+		cs := e.commits()
+		return len(cs) == 3 && cs[0].Model == "fake" && cs[1].Model == "fake" && cs[2].Model == "fake"
+	})
+	time.Sleep(200 * time.Millisecond)
+	if n := e.app.models.Length(); n != 0 {
+		t.Errorf("%d commits queued after every one was read", n)
+	}
+}
+
 func TestModelServerAway(t *testing.T) {
 	e := start(t, func(c *config.Config) { c.ModelURL = "http://127.0.0.1:1" })
 	e.reviewed(3, false) // the code checks still run

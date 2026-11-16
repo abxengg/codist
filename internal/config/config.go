@@ -34,6 +34,7 @@ type Config struct {
 	History   int    // how many recent commits the model reads in the background; 0 means all. Code checks cover every commit
 	Behaviour bool   // run the changed methods before and after each recent commit; off unless turned on, since it runs the project's code
 	Deep      bool   // when the model has nothing else to read, read recent commits again through each specialist lens
+	Older     bool   // when the model has nothing else to read, read the commits older than History too, newest first
 	Ignore    []string
 	OpenPage  bool
 	FromLua   bool // a config.lua was found and read
@@ -127,7 +128,7 @@ func (c *Config) applyLua(src string) error {
 	if v, ok := L.GetGlobal("behaviour").(lua.LBool); ok {
 		c.Behaviour = bool(v)
 	}
-	c.Deep = L.GetGlobal("deep") == lua.LTrue
+	c.Deep, c.Older = L.GetGlobal("deep") == lua.LTrue, L.GetGlobal("older") == lua.LTrue
 	if t, ok := L.GetGlobal("ignore").(*lua.LTable); ok {
 		c.Ignore = nil
 		t.ForEach(func(_, v lua.LValue) {
@@ -168,7 +169,7 @@ func (c *Config) applyEnv() {
 	case "0", "false", "off":
 		c.Behaviour = false
 	}
-	c.Deep = c.Deep || os.Getenv("CODIST_DEEP") == "1"
+	c.Deep, c.Older = c.Deep || os.Getenv("CODIST_DEEP") == "1", c.Older || os.Getenv("CODIST_OLDER") == "1"
 	if os.Getenv("CODIST_NO_BROWSER") != "" {
 		c.OpenPage = false
 	}

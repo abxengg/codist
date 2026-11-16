@@ -102,12 +102,13 @@ Put settings in `.codist/config.lua` in the repository. All are optional:
 model = { url = "http://localhost:11434", name = "qwen3.5:9b", context = 8192 }
 max_files = 8            -- changed files per commit the model reads; checks read all of them
 history = 50             -- recent commits the model reads in the background; 0 for all. Checks cover every commit
+older = false            -- when the model is idle, also read the commits older than `history`, newest first
 ignore = { "target/", "build/", "generated/" }
 behaviour = false        -- run changed methods before and after each recent commit; runs your code, needs a JDK
 ```
 
 The script runs with no file, network or OS access. Environment variables override it for one run:
-`PORT`, `CODIST_MODEL`, `CODIST_MODEL_URL`, `CODIST_MODEL_REVIEW=false`, `CODIST_HISTORY`, `CODIST_BEHAVIOUR=1`,
+`PORT`, `CODIST_MODEL`, `CODIST_MODEL_URL`, `CODIST_MODEL_REVIEW=false`, `CODIST_HISTORY`, `CODIST_OLDER=1`, `CODIST_BEHAVIOUR=1`,
 `CODIST_DATA_DIR`, `CODIST_LOG=debug`, `CODIST_LOG_JSON=1`.
 
 ## Known issues

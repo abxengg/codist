@@ -1,7 +1,6 @@
 package app
 
 import (
-	"cmp"
 	"context"
 	"errors"
 	"log/slog"
@@ -50,9 +49,9 @@ func (a *App) work(ctx context.Context, q *queue, model bool) {
 			}
 		}
 		j, ok := q.Pop()
-		if !ok && model && a.cfg.Deep { // nothing waits: read the newest commit not yet read deeply, lens by lens
-			if sha := review.NextDeep(a.store, a.repo, cmp.Or(a.cfg.History, 50)); sha != "" {
-				q.Push(job{sha: sha, opt: review.Options{Deep: true}}, true)
+		if !ok && model && (a.cfg.Deep || a.cfg.Older) { // nothing waits: read recent commits deeply, then the older ones
+			if sha, opt := review.NextIdle(a.store, a.repo, a.cfg.History, a.cfg.Deep, a.cfg.Older); sha != "" {
+				q.Push(job{sha: sha, opt: opt}, true)
 				continue
 			}
 		}

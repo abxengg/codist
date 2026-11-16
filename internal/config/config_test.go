@@ -59,6 +59,21 @@ func TestHistory(t *testing.T) {
 	}
 }
 
+func TestOlder(t *testing.T) {
+	c := Defaults(".")
+	if c.Older {
+		t.Error("the model stays within its history unless asked")
+	}
+	if err := c.applyLua("older = true"); err != nil || !c.Older {
+		t.Errorf("older = true: %v %v", c.Older, err)
+	}
+	c = Defaults(".")
+	t.Setenv("CODIST_OLDER", "1")
+	if c.applyEnv(); !c.Older {
+		t.Error("CODIST_OLDER=1")
+	}
+}
+
 func TestBehaviourSetting(t *testing.T) {
 	if Defaults(".").Behaviour {
 		t.Error("running the project's code is off unless turned on")

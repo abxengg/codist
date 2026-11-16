@@ -109,6 +109,7 @@ history = 50             -- recent commits the model reads in the background; 0 
 ignore = { "target/", "build/", "generated/" }
 behaviour = false        -- run changed methods before and after each recent commit (see below)
 deep = false             -- when the model is idle, read recent commits again through specialist lenses
+older = false            -- when the model is idle, also read the commits older than `history`, newest first
 ```
 
 The file is Lua, so a team can compute values instead of copying them; it runs with no file, network or OS access.
@@ -127,6 +128,7 @@ Environment variables override it for one run:
 | `CODIST_HISTORY` | how many recent commits the model reads; 0 for all |
 | `CODIST_BEHAVIOUR=1` | turn on running changed methods (see below) |
 | `CODIST_DEEP=1` | read recent commits again, more deeply, whenever the model has nothing else to do |
+| `CODIST_OLDER=1` | when the model has nothing else to do, read the commits older than `history` too, newest first |
 | `CODIST_DATA_DIR` | where Codist keeps its data (default `~/.codist`) |
 | `CODIST_HOSTS` | extra host names the pages may reach Codist by, separated by commas (see below) |
 | `CODIST_LOG` | how much it logs: `debug`, `info` (default), `warn` or `error` |
@@ -153,6 +155,7 @@ for each review, so edits apply to the next commit it reads.
   showed it), **likely** (the model found it, quoted the code, and the claim passed Codist's checks) or **to judge**
   (Codist could not back it, the model rated it minor, or a run showed a change the commit message does not
   explain). Only proven and likely findings open issues.
+- **Older commits** (`older = true`): the model normally reads only the last `history` commits. With this on, whenever it has nothing else to read it goes back past them, one commit at a time, newest first. A new commit always goes first. On a laptop this is about a minute per commit, so a long history takes days of idle time; a restart carries on where it stopped. Not measured yet.
 - **Deep pass** (`deep = true`): when the model has nothing else to read, it reads recent commits again, once as a
   specialist in failures (nulls, exceptions, loops) and once as a specialist in your team's rules, and adds what
   only those readings find. New commits always come first. It uses the machine while you are not waiting for it.
