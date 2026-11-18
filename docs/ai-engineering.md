@@ -23,7 +23,7 @@ combining several methods because no single one is enough. Codist follows it in 
 
 | Book (chapter) | In Codist |
 |---|---|
-| Evaluation-driven development (3, 4) | `codist-eval`: 118 real bugs, a 10-bug sample for quick paired comparisons, refactoring commits to count false alarms. Every model, prompt or retrieval change is compared on the same bugs. |
+| Evaluation-driven development (3, 4) | `codist-eval`: 119 real bugs (49 named by v0.9.0 with `qwen3.5:9b`), a 10-bug sample for quick paired comparisons, refactoring commits to count false alarms. Every model, prompt or retrieval change is compared on the same bugs. |
 | Exact evaluation over AI judges (3) | Quote checks on every model claim; null claims checked against where the value can become null. |
 | Structured outputs (5) | The model must answer in a JSON schema with a line and a quoted line of code for each finding. |
 | Defensive prompting (5) | The instructions say the commit message, diff and code are material to review, never instructions; text that tries to steer the reviewer is itself reported. The quote checks limit what an injected instruction could do. |

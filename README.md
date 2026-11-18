@@ -29,22 +29,27 @@ Nothing leaves your machine. Codist never changes your code unless you approve a
 
 ## How well it finds bugs
 
-Codist is measured on three test projects with planted bugs. Each is built commit by commit by a script in
+Two kinds of test, both with `qwen3.5:9b`, the default model, on a 16 GB laptop.
+
+**Planted bugs.** Three test projects, each built commit by commit by a script in
 [codist-eval](https://github.com/abxengg/codist-eval/tree/main/testbed), with an answer key kept outside the project.
 A bug counts as found when an alarm (not a note) lands within 6 lines of it; a clean commit fails if it gets any alarm.
-The model is `qwen2.5-coder:14b` on a 16 GB laptop. The default is now `qwen3.5:9b`, which found more on the same
-projects in less memory; see [docs/comparison.md](docs/comparison.md).
 
 | Project | What it is | Bugs found | Clean commits with an alarm |
 |---|---|---|---|
-| [records-lab](https://github.com/AbiXnash/records-lab) | a Spring Boot gateway: JSON, XML, CSV and GraphQL over JDBC | 18 of 19 | 0 of 5 |
-| [shop-lab](https://github.com/AbiXnash/shop-lab) | two Spring Boot services: Feign, Redis, Spring Batch, JDBC | 20 of 24 | 0 of 6 |
-| [maze-lab](https://github.com/AbiXnash/maze-lab) | a Java Swing game written to a design spec | 15 of 19 | 2 of 3 (both low) |
+| [records-lab](https://github.com/AbiXnash/records-lab) | a Spring Boot gateway: JSON, XML, CSV and GraphQL over JDBC | 18 of 19 | 1 of 5 |
+| [shop-lab](https://github.com/AbiXnash/shop-lab) | two Spring Boot services: Feign, Redis, Spring Batch, JDBC | 21 of 24 | 0 of 6 |
+| [maze-lab](https://github.com/AbiXnash/maze-lab) | a Java Swing game written to a design spec | 18 of 19 | 0 of 3 |
+| all | | **57 of 62** | **1 of 14** |
 
-Code checks alone, with no model, find 11 of 19, 8 of 24 and 3 of 19: every known Java mistake, and code that breaks
-a habit the project follows elsewhere. The model finds the bugs that need reading the change against your rules, and
-behaviour runs confirm many logic bugs on the game. Each run's full result is in
-[codist-eval/testbed](https://github.com/abxengg/codist-eval/tree/main/testbed).
+**Real bugs.** 119 bugs from real Java projects (Defects4J and GitBug-Java), each put back into its project and
+reviewed once from scratch. The model **named the bug in 49 of 119**, was near it with a related point in 12 more,
+and showed 28 of the 49 as alarms rather than notes. Real bugs are much harder than planted ones; quote 49 of 119, not
+57 of 62. Labels are one reader's judgement, and the fixed versions were not reviewed, so this run gives no
+false-alarm rate. Details in [docs/comparison.md](docs/comparison.md#real-bugs-v090-2026-11-18).
+
+Code checks alone, with no model, find 11 of 19, 8 of 24 and 3 of 19 of the planted bugs, and at most 6 of the real
+ones: they are exact, not broad. The model finds the bugs that need reading the change against your rules.
 
 ## Install
 
@@ -115,12 +120,17 @@ The script runs with no file, network or OS access. Environment variables overri
 
 What does not work yet, and what is planned, is tracked in [the open work list](https://github.com/abxengg/codist/issues/6). The most important:
 
-- **Merge commits are not reviewed.** A hand-resolved conflict is read as a commit that changes nothing ([codist-git#1](https://github.com/abxengg/codist-git/issues/1)).
-- **Very large commits and histories are reviewed thinly.** The AI reads the first 8 changed files of a commit by name, and checking a history of a million commits takes about a day ([codist-review#1](https://github.com/abxengg/codist-review/issues/1), [#1](https://github.com/abxengg/codist/issues/1)).
+- **Only Ollama's interface.** Codist talks to a model server through Ollama's API. Servers that speak only the
+  OpenAI-style API, such as LM Studio and llama.cpp's server, are not supported yet
+  ([codist-model#1](https://github.com/abxengg/codist-model/issues/1)). Install Ollama next to them.
+- **Very large commits and histories are reviewed thinly.** Checking a history of a million commits takes about a
+  day ([#1](https://github.com/abxengg/codist/issues/1)); very large commits are planned by the model, not split
+  ([codist-review#1](https://github.com/abxengg/codist-review/issues/1)).
 - **A written spec is followed only partly.** With your rules in `.codist/rules.md`, the model catches most broken
-  rules, but on the game test lab it missed changed numbers the rules state (20 s became 10 s, 60 fps became 30) and
-  once trusted its own memory over the rules. Behaviour runs catch some of these.
-- **Windows and Linux have not been tried on a real machine yet** ([#4](https://github.com/abxengg/codist/issues/4)).
+  rules. Changed numbers that a document states are caught without the model; other rules it sometimes misses.
+- **A full review has not been run on Windows or Linux by a person.** Tests, the installers and the sandbox run on
+  all three systems in CI ([#4](https://github.com/abxengg/codist/issues/4)).
+- **How each git operation is handled** (merge, rebase, revert, rename, reset): [docs/git.md](docs/git.md).
 
 ## How it is built
 

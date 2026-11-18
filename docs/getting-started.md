@@ -49,7 +49,7 @@ go install github.com/abxengg/codist@latest
 With the install script, you can choose a version or a folder:
 
 ```bash
-CODIST_VERSION=v0.5.1 CODIST_BIN_DIR=/usr/local/bin sh install.sh
+CODIST_VERSION=v0.9.1 CODIST_BIN_DIR=/usr/local/bin sh install.sh
 CODIST_FROM_SOURCE=1 sh install.sh      # build with Go instead of downloading
 ```
 
@@ -73,7 +73,20 @@ ollama pull qwen2.5-coder:7b     # about 5 GB, for 8 GB of memory: faster, finds
 ```
 
 Ollama listens on `http://localhost:11434`, which is where Codist looks. For another address or model, see
-[Settings](#4-settings).
+[Settings](#4-settings). Any model Ollama has will do; set `model.name` (or `CODIST_MODEL`) to its name exactly as
+`ollama list` shows it. Every measurement in these pages is for `qwen3.5:9b`. Smaller models (3b) fit in 8 GB and have
+not been measured: expect more claims that Codist has to throw away, and fewer findings.
+
+**Other model servers.** Codist speaks Ollama's API (`/api/tags`, `/api/chat`). A server that speaks only the
+OpenAI-style API, such as LM Studio or llama.cpp's server, answers `unexpected endpoint` and Codist runs code checks
+only ([codist-model#1](https://github.com/abxengg/codist-model/issues/1)). To check a server:
+
+```bash
+curl http://localhost:PORT/api/tags
+```
+
+A list of models means Codist can use it (`CODIST_MODEL_URL=http://localhost:PORT`). Ollama can run next to such
+a server; it keeps its own copy of each model.
 
 On a laptop the model takes minutes per commit, so Codist reads the newest commits first and, by default, only the
 last 50. The quick code checks still cover every commit.
@@ -147,6 +160,8 @@ for each review, so edits apply to the next commit it reads.
 
 ## 5. Using it
 
+- **Issues** lists every open issue. **Filter** narrows it by type, urgency, change and **Found by**: the AI model or
+  the code checks. An issue that both reported counts under both. Issues found by the model carry an **AI** tag.
 - **Review** lists commits newest first. Pick one to see its diff with issues next to the lines. Issues from code
   checks are exact; issues from the model show the line it quoted, and claims Codist could not confirm are shown as
   notes, as is anything the model itself rates minor. A merge commit is reviewed on what was written by hand to
@@ -245,10 +260,28 @@ ends in the word `useful` or `wrong`, which is the format MLX, Unsloth and llama
 train anything. An adapter made from this file can be put on the Ollama model with `ADAPTER` in a Modelfile. A few
 hundred examples are a sensible minimum; the command says how many there are. Nothing leaves the machine.
 
+## Updating
+
+Run the install command again: it fetches the latest release and replaces the file. Your reviews (`~/.codist`) and
+the project's settings (`.codist/config.lua`) are kept. For a given version:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/abxengg/codist/remaster/install.sh | CODIST_VERSION=v0.9.1 sh
+```
+
+Releases and what changed in each: https://github.com/abxengg/codist/releases. Codist does not yet print its version
+or check for a newer one ([#14](https://github.com/abxengg/codist/issues/14)).
+
 ## Common problems
 
 **"no model server at http://localhost:11434"**: start Ollama (open the app, or run `ollama serve`), or set
 `model.url` to where your server runs. Codist checks again every 30 seconds.
+
+**The page says "Rules only" with LM Studio or another server running**: that server does not speak Ollama's API
+(see [Other model servers](#2-add-a-model-optional-recommended)). Use Ollama.
+
+**Every log line says `model=false`**: those lines are the code checks lane, which never uses the model. A model
+review logs `model=true` and takes seconds to minutes. If none appears, the model is not reachable: the page says why.
 
 **"qwen3.5:9b is not on the server"**: run `ollama pull qwen3.5:9b`, or set `model.name` to a model you
 have (`ollama list`).

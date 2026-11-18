@@ -182,3 +182,29 @@ one alarm, true, on a bug the spec-number check had already raised ("Javadoc cla
 violating spec rule 2"), and two notes that look wrong. No new bug was found (18 of 19 before and after) and no clean
 commit got an alarm. On this project it did not pay for its time; it stays off unless turned on.
 
+## Real bugs, v0.9.0 (2026-11-18)
+
+`go run ./review -once` in [codist-eval](https://github.com/abxengg/codist-eval/tree/main/review): 120 bugs from
+Defects4J and GitBug-Java (the development half of the old benchmark). For each, the fix is reversed in the fixed
+version and committed with a neutral message ("Update <files>"), then reviewed once by codist-review v0.13.0 with
+`qwen3.5:9b`, each from an empty store. One bug's repository is gone from GitHub, so 119 count. 5.2 hours, about 2.6
+minutes a bug.
+
+| | Bugs of 119 |
+|---|---|
+| A finding within 3 lines of the bug | 67 (64 from the model) |
+| **Named the bug** | **49** |
+| Related point near it | 12 |
+| Right line, wrong reason | 6 |
+| Named, shown as an alarm (not a note) | 28 |
+
+Against `qwen2.5-coder:14b` on the same benchmark (2026-11-04, before the claim checks): it named 51 of 118, with 31
+"right line, wrong reason" hits against 6 now, in about 2.5 times the time. **The two models name different bugs**:
+25 both, 24 only the 9b, 26 only the 14b, 75 together. A second, different reading is where most is left
+([codist-review#8](https://github.com/abxengg/codist-review/issues/8)).
+
+What this does not show: false alarms (the fixed versions were not reviewed), and the labels are one reader's
+comparison of each finding with the real fix. A first attempt committed each bug as "Reintroduce the bug", which the
+model read; those results were thrown away. Labels and results:
+[codist-eval/review/results](https://github.com/abxengg/codist-eval/tree/main/review/results).
+
