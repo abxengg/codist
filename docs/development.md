@@ -97,8 +97,8 @@ codist-fix v0.2.0, codist-behaviour v0.3.0, codist-ui v0.8.0).
 A freshly pushed tag can take a while to reach the Go module proxy. To use it at once:
 `GOPROXY=direct GOFLAGS=-mod=mod GONOSUMDB=github.com/abxengg GOPRIVATE=github.com/abxengg GOWORK=off go get ...`.
 
-Versions in Codist v0.9.1: codist-git v0.7.0, codist-model v0.6.0, codist-ui v0.11.0, codist-java v0.5.0,
-codist-review v0.13.0, codist-fix v0.4.0, codist-behaviour v0.6.0.
+Versions in Codist v0.9.2: codist-git v0.7.0, codist-model v0.6.1, codist-ui v0.11.1, codist-java v0.5.0,
+codist-review v0.13.1, codist-fix v0.4.0, codist-behaviour v0.6.0.
 
 ## Releases
 
