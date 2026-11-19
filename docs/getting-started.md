@@ -49,7 +49,7 @@ go install github.com/abxengg/codist@latest
 With the install script, you can choose a version or a folder:
 
 ```bash
-CODIST_VERSION=v0.9.2 CODIST_BIN_DIR=/usr/local/bin sh install.sh
+CODIST_VERSION=v0.10.0 CODIST_BIN_DIR=/usr/local/bin sh install.sh
 CODIST_FROM_SOURCE=1 sh install.sh      # build with Go instead of downloading
 ```
 
@@ -266,7 +266,7 @@ Run the install command again: it fetches the latest release and replaces the fi
 the project's settings (`.codist/config.lua`) are kept. For a given version:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/abxengg/codist/remaster/install.sh | CODIST_VERSION=v0.9.2 sh
+curl -fsSL https://raw.githubusercontent.com/abxengg/codist/remaster/install.sh | CODIST_VERSION=v0.10.0 sh
 ```
 
 Releases and what changed in each: https://github.com/abxengg/codist/releases. Codist does not yet print its version
