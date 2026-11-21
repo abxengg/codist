@@ -1,0 +1,158 @@
+<!doctype html>
+<!--
+  Codist promo ad. One design, three layouts:
+    ad.html#square → 1080×1080 (Instagram / LinkedIn feed)
+    ad.html#wide   → 1200×630  (X / Twitter, link previews)
+    ad.html#story  → 1080×1920 (stories; content kept inside the 250px top/bottom safe zones)
+  Render all:  node docs/ad/render.mjs
+  Numbers are from README "How well it finds bugs" (real bugs, as the README asks to quote).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=block" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0a0a0e; --panel: #15151c; --line: #26262f; --line-2: #33333f;
+    --text: #f3f3f6; --dim: #a4a3b4; --faint: #6f6e80;
+    --violet: #7c6cf6; --violet-2: #a99dff; --green: #3ccf7a; --amber: #f5a524;
+    --sans: "Inter", system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sans); color: var(--text); background: var(--bg); -webkit-font-smoothing: antialiased; overflow: hidden; }
+  .ad { position: relative; overflow: hidden; background:
+      radial-gradient(60% 50% at 50% 0%, rgba(124,108,246,.22), transparent 70%),
+      radial-gradient(40% 40% at 100% 100%, rgba(124,108,246,.10), transparent 70%), var(--bg); }
+
+  /* wordmark: C(sphere)dist, the sphere is drawn by the script below */
+  .word { display: inline-flex; align-items: center; font-weight: 800; letter-spacing: -.05em; line-height: 1; }
+  .word .o { display: inline-block; width: .74em; height: .74em; margin: 0 .02em; position: relative; top: .05em; }
+  .word .o svg { width: 100%; height: 100%; overflow: visible; }
+
+  .tag { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--violet-2); background: rgba(124,108,246,.12); border: 1px solid rgba(124,108,246,.35); padding: 7px 12px; border-radius: 999px; }
+  .tag i { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); }
+  h1 { font-weight: 800; letter-spacing: -.045em; line-height: 1.02; }
+  h1 span { background: linear-gradient(90deg, #c9c1ff, var(--violet) 60%, #9b8cff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { color: var(--dim); line-height: 1.45; letter-spacing: -.01em; }
+  .sub b { color: var(--text); font-weight: 600; }
+
+  .shot { position: absolute; overflow: hidden; border-radius: 14px; border: 1px solid var(--line-2);
+    box-shadow: 0 40px 100px rgba(0,0,0,.65), 0 0 0 8px rgba(124,108,246,.06), 0 0 140px rgba(124,108,246,.18); background: #0d0d12; }
+  /* crop the 1440×900 screenshot: --x0/--y0 top-left of the crop (source px), --cw crop width, --w shown width */
+  .shot img { position: absolute; max-width: none; width: calc(var(--w) * 1440 / var(--cw));
+    left: calc(var(--w) * var(--x0) * -1 / var(--cw)); top: calc(var(--w) * var(--y0) * -1 / var(--cw)); }
+  .shot::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 80px; background: linear-gradient(transparent, rgba(10,10,14,.96)); }
+
+  .stats { display: flex; gap: 0; border: 1px solid var(--line); border-radius: 14px; background: rgba(21,21,28,.8); overflow: hidden; }
+  .stats div { flex: 1; padding: 14px 18px; }
+  .stats div + div { border-left: 1px solid var(--line); }
+  .stats b { display: block; font-size: 30px; font-weight: 800; letter-spacing: -.04em; line-height: 1.05; }
+  .stats b em { font-style: normal; color: var(--violet-2); }
+  .stats span { font-size: 13px; color: var(--faint); line-height: 1.3; display: block; margin-top: 4px; }
+
+  .feats { display: flex; flex-wrap: wrap; gap: 8px; }
+  .feats span { font-size: 14px; font-weight: 500; padding: 7px 12px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line); color: var(--dim); }
+  .feats span b { color: var(--text); font-weight: 600; }
+
+  .cta { display: inline-flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: 18px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line-2); padding: 12px 16px; }
+  .cta .p { color: var(--violet-2); }
+  .cta .c { color: var(--text); }
+  .cta .n { color: var(--faint); }
+  .cur { display: inline-block; width: 10px; height: 20px; background: var(--violet); vertical-align: -3px; }
+  .link { font-family: var(--mono); font-size: 15px; color: var(--faint); }
+  .link b { color: var(--text); font-weight: 500; }
+  .fine { font-size: 12.5px; color: var(--faint); }
+
+  /* ---------------- square 1080×1080 ---------------- */
+  .square .ad { width: 1080px; height: 1080px; }
+  .square .top { position: absolute; left: 72px; right: 72px; top: 60px; }
+  .square .row { display: flex; justify-content: space-between; align-items: center; }
+  .square .word { font-size: 46px; }
+  .square h1 { font-size: 64px; margin-top: 38px; }
+  .square .sub { font-size: 21px; margin-top: 18px; max-width: 880px; }
+  .square .shot { left: 72px; top: 418px; width: 936px; height: 400px; --x0: 655; --y0: 440; --cw: 765; --w: 936px; }
+  .square .stats { position: absolute; left: 72px; right: 72px; top: 842px; }
+  .square .bottom { position: absolute; left: 72px; right: 72px; bottom: 50px; display: flex; justify-content: space-between; align-items: flex-end; }
+  .square .bottom > div:last-child { text-align: right; display: flex; flex-direction: column; gap: 6px; }
+
+  /* ---------------- wide 1200×630 ---------------- */
+  .wide .ad { width: 1200px; height: 630px; }
+  .wide .top { position: absolute; left: 60px; top: 50px; width: 560px; }
+  .wide .row { display: flex; gap: 18px; align-items: center; }
+  .wide .word { font-size: 38px; }
+  .wide .tag { font-size: 12.5px; padding: 6px 10px; }
+  .wide h1 { font-size: 48px; margin-top: 30px; }
+  .wide .sub { font-size: 17.5px; margin-top: 16px; }
+  .wide .stats { position: absolute; left: 60px; width: 560px; top: 392px; }
+  .wide .stats b { font-size: 24px; } .wide .stats span { font-size: 12px; }
+  .wide .stats div { padding: 11px 14px; }
+  .wide .bottom { position: absolute; left: 60px; bottom: 42px; display: flex; align-items: center; gap: 18px; }
+  .wide .cta { font-size: 15.5px; padding: 10px 14px; }
+  .wide .bottom .fine, .wide .feats { display: none; }
+  .wide .shot { left: 660px; top: 60px; width: 600px; height: 510px; border-radius: 14px 0 0 14px; --x0: 655; --y0: 330; --cw: 765; --w: 765px; }
+
+  /* ---------------- story 1080×1920 ---------------- */
+  .story .ad { width: 1080px; height: 1920px; display: flex; flex-direction: column; padding: 250px 72px 250px; }
+  .story .row { display: flex; flex-direction: column; align-items: flex-start; gap: 22px; }
+  .story .word { font-size: 64px; }
+  .story .tag { font-size: 17px; padding: 9px 15px; }
+  .story h1 { font-size: 80px; margin-top: 40px; }
+  .story .sub { font-size: 25px; margin-top: 24px; }
+  .story .shot { position: relative; flex: none; width: 1008px; height: 640px; margin-top: 44px; border-radius: 14px 0 0 14px; --x0: 655; --y0: 457; --cw: 650; --w: 1008px; }
+  .story .stats { margin-top: 26px; }
+  .story .stats b { font-size: 34px; } .story .stats span { font-size: 15px; }
+  .story .bottom { margin-top: auto; display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+  .story .cta { font-size: 22px; padding: 15px 20px; }
+  .story .cur { width: 12px; height: 24px; }
+  .story .link { font-size: 20px; }
+  .story .fine { font-size: 16px; }
+  .story .feats { display: none; }
+</style>
+</head>
+<body>
+  <div class="ad">
+    <div class="top">
+      <div class="row">
+        <div class="word">C<span class="o"><svg id="sphere" viewBox="-50 -50 100 100" aria-hidden="true"></svg></span>dist</div>
+        <span class="tag"><i></i>Runs 100% on your machine</span>
+      </div>
+      <h1>The AI code reviewer<br /><span>that shows its work.</span></h1>
+      <p class="sub">Codist reviews every <b>Java &amp; Spring Boot</b> commit with a local model — and checks each claim against your code before you see it.</p>
+    </div>
+
+    <div class="shot"><img src="review-screen.png" alt="Codist showing a high-severity finding and how it decided" /></div>
+
+    <div class="stats">
+      <div><b><em>49</em> of 119</b><span>real Java bugs named (Defects4J, GitBug-Java)</span></div>
+      <div><b>9B</b><span>local model, on a 16 GB laptop</span></div>
+      <div><b>0</b><span>lines of code leave your machine</span></div>
+    </div>
+
+    <div class="bottom">
+      <div>
+        <div class="cta"><span class="p">❯</span><span class="c">codist</span><span class="n"># opens localhost:8080</span><span class="cur"></span></div>
+      </div>
+      <div>
+        <div class="link">github.com/<b>abxengg/codist</b></div>
+        <div class="fine">Free for non-commercial use · macOS · Linux · Windows · Docker</div>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.body.className = (location.hash || "#square").slice(1);
+    // dotted sphere: points on a Fibonacci sphere, front half drawn bigger and brighter
+    const svg = document.getElementById("sphere"), N = 260, R = 46, tilt = 0.45;
+    let dots = "";
+    for (let i = 0; i < N; i++) {
+      const y = 1 - (i / (N - 1)) * 2, r = Math.sqrt(1 - y * y), t = i * 2.399963;
+      let x = Math.cos(t) * r, z = Math.sin(t) * r;
+      const y2 = y * Math.cos(tilt) - z * Math.sin(tilt), z2 = y * Math.sin(tilt) + z * Math.cos(tilt);
+      const front = (z2 + 1) / 2;
+      dots += `<circle cx="${(x * R).toFixed(2)}" cy="${(y2 * R).toFixed(2)}" r="${(0.9 + front * 1.5).toFixed(2)}" fill="#8b7cf6" opacity="${(0.25 + front * 0.75).toFixed(2)}"/>`;
+    }
+    svg.innerHTML = dots;
+  </script>
+</body>
+</html>
