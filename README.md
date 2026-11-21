@@ -1,5 +1,7 @@
 # Codist
 
+![Codist: the AI code reviewer that shows its work](docs/ad/codist-ad-wide.png)
+
 Codist reviews a Java and Spring Boot repository on your own machine. It runs as one program next to your code,
 watches the repository, and shows what it finds in your browser:
 
@@ -159,6 +161,13 @@ make dist     # one file each for macOS, Linux and Windows
 ```
 
 Data is kept in `~/.codist/<repo>-<hash>.db`, a SQLite file named after the repository's folder and full path.
+
+## Share
+
+Images for posts and stories are in [docs/ad](docs/ad): a [square](docs/ad/codist-ad-square.png) (1080×1080), a
+[wide](docs/ad/codist-ad-wide.png) (1200×630) and a [story](docs/ad/codist-ad-story.png) (1080×1920). They are made
+from [docs/ad/ad.html](docs/ad/ad.html) by `node docs/ad/render.mjs`, which needs Chrome. The bug numbers on them are
+the real-bug results above.
 
 ## Licence
 
