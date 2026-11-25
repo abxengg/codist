@@ -116,6 +116,7 @@ func (a *App) routes() {
 	h("DELETE /api/issues/{id}/resolve", a.reopenIssue)
 	h("POST /api/issues/{id}/feedback", a.feedback)
 	h("GET /api/repo", a.repoReport)
+	h("POST /api/chat", a.chat)
 	h("GET /api/incidents", a.incidents)
 	h("POST /api/incidents", a.createIncident)
 	h("GET /api/incidents/{id}", a.incident)
