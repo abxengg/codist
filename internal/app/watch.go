@@ -88,8 +88,14 @@ func (a *App) work(ctx context.Context, q *queue, model bool) {
 			unlock := a.lockSHA(j.sha)
 			err = a.reviewer(model).Review(ctx, j.sha, j.opt)
 			unlock()
+		} else if a.modelRead(j.sha) {
+			// The model has read it already, and its review ran the checks too. Checking again would replace that
+			// review with one without the model's findings: on a first run the riskiest commits go to the model
+			// before the checks lane reaches them.
 		} else if m, _ := a.shaLocks.LoadOrStore(j.sha, &sync.Mutex{}); m.(*sync.Mutex).TryLock() {
-			err = a.reviewer(model).Review(ctx, j.sha, j.opt)
+			if !a.modelRead(j.sha) { // the model may have finished while this lane waited for the lock
+				err = a.reviewer(model).Review(ctx, j.sha, j.opt)
+			}
 			m.(*sync.Mutex).Unlock()
 		} // otherwise the model is reviewing it, which runs the checks too: the fast lane moves on
 		q.Done(j.sha)
@@ -176,6 +182,12 @@ func (a *App) backlog() {
 		}
 	}
 	slog.Info("backlog", "checks", a.checks.Length(), "model", a.models.Length())
+}
+
+// modelRead says the model has finished reading this commit.
+func (a *App) modelRead(sha string) bool {
+	rv, ok := a.store.GetReview(sha)
+	return ok && rv.Status == "done" && rv.Model != ""
 }
 
 // anyRead says whether the model has read any commit here before.

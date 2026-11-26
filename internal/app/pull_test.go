@@ -11,6 +11,8 @@ import (
 	"time"
 
 	git "github.com/abxengg/codist-git"
+	"github.com/abxengg/codist-git/testrepo"
+	review "github.com/abxengg/codist-review"
 	"github.com/abxengg/codist/internal/config"
 )
 
@@ -102,5 +104,28 @@ func TestColdPick(t *testing.T) {
 	}
 	if got := coldPicks(hist[:7], 5, 3); len(got) != 0 {
 		t.Fatalf("coldPicks = %q, want none: nothing recent changes code that was there", got)
+	}
+}
+
+// A commit the model has read is not checked again by the fast lane: that would replace the model's review with one
+// without its findings. On a first run the riskiest commits reach the model before the checks lane gets to them.
+func TestChecksLaneKeepsTheModelsReview(t *testing.T) {
+	e := start(t, nil)
+	e.model.mu.Lock()
+	e.model.review = `{"findings":[{"line":` + fmt.Sprint(testrepo.BugLine) + `,"severity":"high","title":"Discount applied twice","evidence":"total = total * 9 / 10;","detail":"d"}]}`
+	e.model.mu.Unlock()
+	read := func() string { // the model's name once it has finished reading the commit
+		if rv, _ := e.app.store.GetReview(e.repo.Bug); rv.Status == "done" {
+			return rv.Model
+		}
+		return ""
+	}
+	waitFor(t, "the model to read the bug commit", func() bool { return read() != "" })
+	before := len(e.app.store.Findings(e.repo.Bug))
+	e.app.checks.Push(job{sha: e.repo.Bug, opt: review.Options{RulesOnly: true}}, true)
+	waitFor(t, "the checks lane to take the job", func() bool { return e.app.checks.Length() == 0 && !e.app.checks.Running(e.repo.Bug) })
+	time.Sleep(200 * time.Millisecond)
+	if read() == "" || len(e.app.store.Findings(e.repo.Bug)) != before {
+		t.Fatalf("the checks lane replaced the model's review: model %q, findings %d, were %d", read(), len(e.app.store.Findings(e.repo.Bug)), before)
 	}
 }
