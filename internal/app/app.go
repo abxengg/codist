@@ -58,6 +58,8 @@ func New(ctx context.Context, cfg config.Config, repo *git.Repo) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Model calls are saved next to the repository's data, so the Activity page keeps its history across restarts.
+	activity.Keep(filepath.Join(cfg.DataDir, store.Name(repo.Root)+"-calls.jsonl"))
 	a := &App{cfg: cfg, repo: repo, model: model.New(cfg.ModelURL, cfg.Model, cfg.ModelCtx), store: st,
 		mux: http.NewServeMux(), checks: newQueue("Code checks"), models: newQueue("AI model"), runs: newQueue("Behaviour runs"), events: newHub(), ctx: ctx, tries: map[string]int{},
 		fixer: &fix.Fixer{Repo: repo, Store: st, Model: model.New(cfg.ModelURL, cfg.Model, cfg.ModelCtx), Notes: filepath.Join(cfg.DataDir, store.Name(repo.Root)+"-fix-notes.json")}}

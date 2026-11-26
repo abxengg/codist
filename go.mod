@@ -10,9 +10,9 @@ require (
 	github.com/abxengg/codist-behaviour v0.6.0
 	github.com/abxengg/codist-git v0.7.0
 	github.com/abxengg/codist-java v0.5.0
-	github.com/abxengg/codist-model v0.6.2
-	github.com/abxengg/codist-review v0.13.2
-	github.com/abxengg/codist-ui v0.13.0
+	github.com/abxengg/codist-model v0.6.3
+	github.com/abxengg/codist-review v0.13.3
+	github.com/abxengg/codist-ui v0.13.1
 )
 
 require (
