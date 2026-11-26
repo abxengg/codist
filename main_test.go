@@ -163,3 +163,32 @@ func TestTopCommand(t *testing.T) {
 		t.Errorf("help: %s", out)
 	}
 }
+
+func TestAssetName(t *testing.T) {
+	for _, c := range []struct{ goos, arch, want string }{
+		{"darwin", "arm64", "codist-macos-arm64"}, {"darwin", "amd64", "codist-macos-x64"},
+		{"linux", "amd64", "codist-linux-x64"}, {"linux", "arm64", "codist-linux-arm64"}, {"windows", "amd64", "codist-windows-x64.exe"},
+	} {
+		if got, err := assetName(c.goos, c.arch); err != nil || got != c.want {
+			t.Errorf("%s/%s: got %q, %v", c.goos, c.arch, got, err)
+		}
+	}
+	if _, err := assetName("windows", "arm64"); err == nil {
+		t.Error("windows/arm64 has no release build")
+	}
+}
+
+func TestNewer(t *testing.T) {
+	for _, c := range []struct {
+		a, b string
+		want bool
+	}{
+		{"v0.11.0", "v0.10.0", true}, {"v0.10.0", "v0.11.0", false}, {"v0.11.0", "v0.11.0", false},
+		{"v0.10.10", "v0.10.9", true}, {"v1.0.0", "v0.99.9", true}, {"v0.11.0", "dev", true},
+		{"v0.11.0", "v0.11.0-3-gabc1234-dirty", false}, {"garbage", "v0.1.0", false},
+	} {
+		if got := newer(c.a, c.b); got != c.want {
+			t.Errorf("newer(%q, %q) = %v, want %v", c.a, c.b, got, c.want)
+		}
+	}
+}

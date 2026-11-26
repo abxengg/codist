@@ -262,15 +262,27 @@ hundred examples are a sensible minimum; the command says how many there are. No
 
 ## Updating
 
-Run the install command again: it fetches the latest release and replaces the file. Your reviews (`~/.codist`) and
-the project's settings (`.codist/config.lua`) are kept. For a given version:
-
 ```bash
-curl -fsSL https://raw.githubusercontent.com/abxengg/codist/remaster/install.sh | CODIST_VERSION=v0.11.0 sh
+codist version
 ```
 
-Releases and what changed in each: https://github.com/abxengg/codist/releases. Codist does not yet print its version
-or check for a newer one ([#14](https://github.com/abxengg/codist/issues/14)).
+prints the version you have and says whether a newer release exists. To install the newest release in place of
+the one you have:
+
+```bash
+codist upgrade
+```
+
+It downloads the release for your system, runs it once to check it works, then swaps it in, and keeps the old one
+next to it as `codist.previous`. For a given version, newer or older:
+
+```bash
+codist upgrade v0.11.0
+```
+
+Your reviews (`~/.codist`) and the project's settings (`.codist/config.lua`) are kept. Codist releases before
+v0.11.1 have neither command: update those by running the install command again. Releases and what changed in
+each: https://github.com/abxengg/codist/releases.
 
 ## Common problems
 

@@ -2,11 +2,14 @@
 # Java grammar is embedded in the parser (codist-java), which keeps the binary small.
 TAGS := grammar_subset grammar_subset_java
 GO   := CGO_ENABLED=0 go
+# The version a build reports (codist version): the release tag in CI, else what git says about this checkout.
+VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
+LDFLAGS := -X main.version=$(VERSION)
 
 .PHONY: build test run dev dist clean
 
 build:
-	$(GO) build -tags '$(TAGS)' -o bin/codist .
+	$(GO) build -tags '$(TAGS)' -ldflags '$(LDFLAGS)' -o bin/codist .
 
 test:
 	$(GO) test -tags '$(TAGS)' ./...
@@ -20,11 +23,11 @@ dev:
 
 # One binary per system, ready to copy.
 dist:
-	GOOS=darwin  GOARCH=arm64 $(GO) build -tags '$(TAGS)' -o dist/codist-macos-arm64 .
-	GOOS=darwin  GOARCH=amd64 $(GO) build -tags '$(TAGS)' -o dist/codist-macos-x64 .
-	GOOS=linux   GOARCH=amd64 $(GO) build -tags '$(TAGS)' -o dist/codist-linux-x64 .
-	GOOS=linux   GOARCH=arm64 $(GO) build -tags '$(TAGS)' -o dist/codist-linux-arm64 .
-	GOOS=windows GOARCH=amd64 $(GO) build -tags '$(TAGS)' -o dist/codist-windows-x64.exe .
+	GOOS=darwin  GOARCH=arm64 $(GO) build -tags '$(TAGS)' -ldflags '$(LDFLAGS)' -o dist/codist-macos-arm64 .
+	GOOS=darwin  GOARCH=amd64 $(GO) build -tags '$(TAGS)' -ldflags '$(LDFLAGS)' -o dist/codist-macos-x64 .
+	GOOS=linux   GOARCH=amd64 $(GO) build -tags '$(TAGS)' -ldflags '$(LDFLAGS)' -o dist/codist-linux-x64 .
+	GOOS=linux   GOARCH=arm64 $(GO) build -tags '$(TAGS)' -ldflags '$(LDFLAGS)' -o dist/codist-linux-arm64 .
+	GOOS=windows GOARCH=amd64 $(GO) build -tags '$(TAGS)' -ldflags '$(LDFLAGS)' -o dist/codist-windows-x64.exe .
 
 clean:
 	rm -rf bin dist

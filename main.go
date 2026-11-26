@@ -41,7 +41,17 @@ func main() {
 	activity.Watch()
 	args := os.Args[1:]
 	if len(args) > 0 && (args[0] == "help" || args[0] == "-h" || args[0] == "--help") {
-		fmt.Println("codist [path]    review the repository at path (default: here)\ncodist doctor    show what is installed and what is missing\ncodist top       watch what the model is doing, live, in this terminal\ncodist trust     let this repository's .codist/config.lua turn on running its code and name a model on another machine\ncodist training  write the model's findings you judged, or that were fixed, as training examples (JSON lines)")
+		fmt.Println("codist [path]    review the repository at path (default: here)\ncodist doctor    show what is installed and what is missing\ncodist top       watch what the model is doing, live, in this terminal\ncodist trust     let this repository's .codist/config.lua turn on running its code and name a model on another machine\ncodist training  write the model's findings you judged, or that were fixed, as training examples (JSON lines)\ncodist version   print the version, and say whether a newer release exists\ncodist upgrade   install the latest release in place of this one (or: codist upgrade v0.11.0)")
+		return
+	}
+	if len(args) > 0 && (args[0] == "version" || args[0] == "--version" || args[0] == "-v") {
+		runVersion(args[1:])
+		return
+	}
+	if len(args) > 0 && args[0] == "upgrade" {
+		if err := runUpgrade(args[1:]); err != nil {
+			fail(err.Error())
+		}
 		return
 	}
 	if len(args) > 0 && args[0] == "top" { // a live view, in this terminal, of a Codist already running
