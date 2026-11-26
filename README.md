@@ -117,7 +117,7 @@ behaviour = false        -- run changed methods before and after each recent com
 ```
 
 The script runs with no file, network or OS access. Environment variables override it for one run:
-`PORT`, `CODIST_MODEL`, `CODIST_MODEL_URL`, `CODIST_MODEL_REVIEW=false`, `CODIST_HISTORY`, `CODIST_OLDER=1`, `CODIST_BEHAVIOUR=1`,
+`PORT`, `CODIST_MODEL`, `CODIST_MODEL_URL`, `CODIST_MODEL_REVIEW=false`, `CODIST_HISTORY`, `CODIST_OLDER=1`, `CODIST_TWICE=1`, `CODIST_FIRST_WORD`, `CODIST_BEHAVIOUR=1`,
 `CODIST_DATA_DIR`, `CODIST_LOG=debug`, `CODIST_LOG_JSON=1`.
 
 ## Known issues

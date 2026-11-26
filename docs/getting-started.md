@@ -130,6 +130,7 @@ ignore = { "target/", "build/", "generated/" }
 behaviour = false        -- run changed methods before and after each recent commit (see below)
 deep = false             -- when the model is idle, read recent commits again through specialist lenses
 older = false            -- when the model is idle, also read the commits older than `history`, newest first
+twice = false            -- read every commit's files twice, not only commits the risk model rates high
 ```
 
 The file is Lua, so a team can compute values instead of copying them; it runs with no file, network or OS access.
@@ -149,6 +150,8 @@ Environment variables override it for one run:
 | `CODIST_BEHAVIOUR=1` | turn on running changed methods (see below) |
 | `CODIST_DEEP=1` | read recent commits again, more deeply, whenever the model has nothing else to do |
 | `CODIST_OLDER=1` | when the model has nothing else to do, read the commits older than `history` too, newest first |
+| `CODIST_TWICE=1` | read every commit's files twice and keep what only the second reading finds (about twice the model time) |
+| `CODIST_FIRST_WORD` | seconds a model call may wait for its first word before it ends and is tried again (default 180) |
 | `CODIST_DATA_DIR` | where Codist keeps its data (default `~/.codist`) |
 | `CODIST_HOSTS` | extra host names the pages may reach Codist by, separated by commas (see below) |
 | `CODIST_LOG` | how much it logs: `debug`, `info` (default), `warn` or `error` |

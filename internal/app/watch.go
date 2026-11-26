@@ -84,7 +84,7 @@ func (a *App) work(ctx context.Context, q *queue, model bool) {
 		}
 		var err error
 		if model {
-			j.opt.Twice = a.riskLevel(j.sha) == "high" // a commit likely to bring a bug is read twice
+			j.opt.Twice = a.cfg.Twice || a.riskLevel(j.sha) == "high" // a commit likely to bring a bug is read twice
 			unlock := a.lockSHA(j.sha)
 			err = a.reviewer(model).Review(ctx, j.sha, j.opt)
 			unlock()

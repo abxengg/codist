@@ -72,6 +72,10 @@ func TestOlder(t *testing.T) {
 	if c.applyEnv(); !c.Older {
 		t.Error("CODIST_OLDER=1")
 	}
+	t.Setenv("CODIST_TWICE", "1")
+	if c.applyEnv(); !c.Twice {
+		t.Error("CODIST_TWICE=1")
+	}
 }
 
 func TestBehaviourSetting(t *testing.T) {
