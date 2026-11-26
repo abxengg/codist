@@ -49,7 +49,7 @@ go install github.com/abxengg/codist@latest
 With the install script, you can choose a version or a folder:
 
 ```bash
-CODIST_VERSION=v0.11.1 CODIST_BIN_DIR=/usr/local/bin sh install.sh
+CODIST_VERSION=v0.11.2 CODIST_BIN_DIR=/usr/local/bin sh install.sh
 CODIST_FROM_SOURCE=1 sh install.sh      # build with Go instead of downloading
 ```
 
