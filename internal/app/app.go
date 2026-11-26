@@ -122,6 +122,8 @@ func (a *App) routes() {
 	h("POST /api/issues/{id}/feedback", a.feedback)
 	h("GET /api/repo", a.repoReport)
 	h("POST /api/chat", a.chat)
+	h("POST /api/model/pull", a.pull)
+	h("GET /api/model/pull", a.pullStatus)
 	h("GET /api/incidents", a.incidents)
 	h("POST /api/incidents", a.createIncident)
 	h("GET /api/incidents/{id}", a.incident)

@@ -72,6 +72,12 @@ ollama pull qwen3.5:9b           # about 8 GB, the default; wants 16 GB of memor
 ollama pull qwen2.5-coder:7b     # about 5 GB, for 8 GB of memory: faster, finds less
 ```
 
+If Ollama runs but does not have the model, Codist's Now page (and Chat) offers **Download it** and shows the
+download's progress; the AI starts reviewing when it is done. Ollama downloads it; Codist only asks.
+
+On the first run the AI does not start with the newest commit: it first reads the three recent commits most likely to
+hold a bug (small changes to code that was already there, in files changed often), then the rest newest first.
+
 Ollama listens on `http://localhost:11434`, which is where Codist looks. For another address or model, see
 [Settings](#4-settings). Any model Ollama has will do; set `model.name` (or `CODIST_MODEL`) to its name exactly as
 `ollama list` shows it. Every measurement in these pages is for `qwen3.5:9b`. Smaller models (3b) fit in 8 GB and have
@@ -297,7 +303,7 @@ model in the server first.
 **Every log line says `model=false`**: those lines are the code checks lane, which never uses the model. A model
 review logs `model=true` and takes seconds to minutes. If none appears, the model is not reachable: the page says why.
 
-**"qwen3.5:9b is not on the server"**: run `ollama pull qwen3.5:9b`, or set `model.name` to a model you
+**"qwen3.5:9b is not on the server"**: press **Download it** on the Now page, or run `ollama pull qwen3.5:9b`, or set `model.name` to a model you
 have (`ollama list`).
 
 **"cannot listen on 127.0.0.1:8080"**: something else uses the port. Run `PORT=8090 codist`.

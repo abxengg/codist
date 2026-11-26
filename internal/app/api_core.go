@@ -27,7 +27,7 @@ func (a *App) status(w http.ResponseWriter, r *http.Request) {
 	head := a.repo.Resolve(a.viewRef())
 	web.JSON(w, map[string]any{
 		"repo": filepath.Base(a.repo.Root), "path": a.repo.Root, "branch": branch, "viewing": view != "", "checkedOut": checkedOut,
-		"tracking": branch, "head": head, "model": a.cfg.Model, "llmProblem": problem,
+		"tracking": branch, "head": head, "model": a.cfg.Model, "llmProblem": problem, "canPull": !a.cfg.ModelOff && !modelOK && canPull(note),
 		"graphSource": head, "graphBuiltAt": time.Now().UnixMilli(), "canFix": !a.cfg.ModelOff && modelOK && view == "", "user": "",
 		"rules": 15, "models": map[string]string{"review": a.cfg.Model, "summary": a.cfg.Model, "fix": a.cfg.Model, "ask": a.cfg.Model},
 		"types": len(ix.Types), "behaviour": a.runner != nil, "modelUsage": review.Usage(a.store), "riskModel": a.riskModel(),

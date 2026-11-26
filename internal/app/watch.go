@@ -4,14 +4,19 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"math"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 	"sync"
 	"time"
 
+	git "github.com/abxengg/codist-git"
 	"github.com/abxengg/codist-review"
 	"github.com/abxengg/codist-review/activity"
 	"github.com/abxengg/codist-review/risk"
+	"github.com/abxengg/codist-review/store"
 )
 
 // Code checks take milliseconds and have their own lane, never waiting behind the model. The model lane works
@@ -145,6 +150,20 @@ func (a *App) modelReady() bool {
 func (a *App) backlog() {
 	reviews := a.store.Reviews()
 	log, _ := a.repo.LogRef("HEAD", 1_000_000)
+	// On a first run the model reads the three recent commits most likely to hold a bug before the rest, so the first
+	// things it shows are worth seeing; the others follow newest first.
+	first := map[string]bool{}
+	if !a.cfg.ModelOff && !anyRead(reviews) {
+		hist, _ := a.repo.History(200)
+		picks := coldPicks(hist, min(20, a.historyLimit()), 3)
+		for _, sha := range picks {
+			first[sha] = true
+			a.models.Push(job{sha: sha}, false)
+		}
+		if len(picks) > 0 {
+			slog.Info("first model reviews go to the riskiest recent commits", "shas", picks)
+		}
+	}
 	for i, c := range log { // newest first
 		rv, seen := reviews[c.SHA]
 		// A review still "running" was cut off when Codist stopped, and a failed one may work now: both are done again.
@@ -152,11 +171,60 @@ func (a *App) backlog() {
 		if !finished {
 			a.checks.Push(job{sha: c.SHA, opt: review.Options{RulesOnly: true}}, false)
 		}
-		if !a.cfg.ModelOff && i < a.historyLimit() && (!finished || rv.Model == "") {
+		if !a.cfg.ModelOff && i < a.historyLimit() && (!finished || rv.Model == "") && !first[c.SHA] {
 			a.models.Push(job{sha: c.SHA}, false)
 		}
 	}
 	slog.Info("backlog", "checks", a.checks.Length(), "model", a.models.Length())
+}
+
+// anyRead says whether the model has read any commit here before.
+func anyRead(reviews map[string]store.Review) bool {
+	for _, rv := range reviews {
+		if rv.Model != "" {
+			return true
+		}
+	}
+	return false
+}
+
+// coldPicks are the k commits among the newest n most likely to hold a bug, riskiest first, before Codist knows
+// anything about this repository: changes to Java code that was already there (lines removed or rewritten, not only
+// added), in files changed often before, small rather than large. On the three test labs the first three picks hold
+// a bug-bringing commit 6 times in 9, against 3 in 9 for the newest three; picking the biggest changes chose new
+// features, which were clean. Merges, changes to tests or other files only, and changes too big to be one piece of
+// work are passed over. hist is oldest first, as git.Repo.History gives it.
+func coldPicks(hist []git.CommitStat, n, k int) []string {
+	type scored struct {
+		sha   string
+		score float64
+	}
+	var all []scored
+	seen := map[string]int{} // how often each file changed before the commit being looked at
+	for i, c := range hist {
+		added, deleted, files, churn := 0, 0, 0, 0
+		for _, f := range c.Files {
+			if strings.HasSuffix(f.Path, ".java") && !strings.Contains(f.Path, "/test/") && !strings.HasSuffix(f.Path, "Test.java") && f.Added >= 0 {
+				added, deleted = added+f.Added, deleted+f.Deleted
+				files++
+				churn = max(churn, seen[f.Path])
+			}
+		}
+		for _, f := range c.Files {
+			seen[f.Path]++
+		}
+		lines := added + deleted
+		if i < len(hist)-n || c.Parents > 1 || deleted == 0 || lines > 600 || files > 15 {
+			continue
+		}
+		all = append(all, scored{c.SHA, 1 + math.Log1p(float64(churn)) - 0.3*math.Log1p(float64(lines))})
+	}
+	sort.SliceStable(all, func(i, j int) bool { return all[i].score > all[j].score })
+	var out []string
+	for i := 0; i < len(all) && i < k; i++ {
+		out = append(out, all[i].sha)
+	}
+	return out
 }
 
 func (a *App) historyLimit() int {

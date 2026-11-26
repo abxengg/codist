@@ -98,6 +98,8 @@ review, install [Ollama](https://ollama.com) and pull a model:
 ollama pull qwen3.5:9b             # about 8 GB; the default. On 8 GB of memory use qwen2.5-coder:7b
 ```
 
+Or skip the pull: with Ollama running, Codist's Now page offers to download the model and shows its progress.
+
 The full walk-through, with settings and fixes for common problems, is in
 [docs/getting-started.md](docs/getting-started.md).
 
