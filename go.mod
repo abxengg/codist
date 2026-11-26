@@ -12,11 +12,11 @@ require (
 	github.com/abxengg/codist-java v0.5.0
 	github.com/abxengg/codist-model v0.6.2
 	github.com/abxengg/codist-review v0.13.2
-	github.com/abxengg/codist-ui v0.12.0
+	github.com/abxengg/codist-ui v0.13.0
 )
 
 require (
-	github.com/abxengg/codist-fix v0.4.0
+	github.com/abxengg/codist-fix v0.5.0
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
