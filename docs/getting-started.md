@@ -77,16 +77,17 @@ Ollama listens on `http://localhost:11434`, which is where Codist looks. For ano
 `ollama list` shows it. Every measurement in these pages is for `qwen3.5:9b`. Smaller models (3b) fit in 8 GB and have
 not been measured: expect more claims that Codist has to throw away, and fewer findings.
 
-**Other model servers.** Codist speaks Ollama's API (`/api/tags`, `/api/chat`). A server that speaks only the
-OpenAI-style API, such as LM Studio or llama.cpp's server, answers `unexpected endpoint` and Codist runs code checks
-only ([codist-model#1](https://github.com/abxengg/codist-model/issues/1)). To check a server:
+**Other model servers.** Codist also works with servers that speak the OpenAI-style API, such as LM Studio,
+llama.cpp's server, vLLM and Jan. Point Codist at the server and name a model it has loaded:
 
 ```bash
-curl http://localhost:PORT/api/tags
+CODIST_MODEL_URL=http://localhost:1234 CODIST_MODEL=qwen2.5-coder-3b-instruct codist
 ```
 
-A list of models means Codist can use it (`CODIST_MODEL_URL=http://localhost:PORT`). Ollama can run next to such
-a server; it keeps its own copy of each model.
+Codist asks the server whether it is Ollama, then whether it speaks the OpenAI-style API, and uses whichever answers.
+To skip the guess, set `CODIST_MODEL_API=openai` (or `ollama`); an address ending in `/v1` also means OpenAI-style.
+The model's name must be exactly as the server lists it; if it is not there, the page lists the names the server has.
+The server must support structured output (`response_format` with a JSON schema): LM Studio and llama.cpp do.
 
 On a laptop the model takes minutes per commit, so Codist reads the newest commits first and, by default, only the
 last 50. The quick code checks still cover every commit.
@@ -289,8 +290,9 @@ each: https://github.com/abxengg/codist/releases.
 **"no model server at http://localhost:11434"**: start Ollama (open the app, or run `ollama serve`), or set
 `model.url` to where your server runs. Codist checks again every 30 seconds.
 
-**The page says "Rules only" with LM Studio or another server running**: that server does not speak Ollama's API
-(see [Other model servers](#2-add-a-model-optional-recommended)). Use Ollama.
+**The page says "Rules only" with LM Studio or another server running**: check the model's name. It must be
+exactly as the server lists it (`curl http://localhost:PORT/v1/models`); the page names the ones it found. Load the
+model in the server first.
 
 **Every log line says `model=false`**: those lines are the code checks lane, which never uses the model. A model
 review logs `model=true` and takes seconds to minutes. If none appears, the model is not reachable: the page says why.

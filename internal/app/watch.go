@@ -48,6 +48,16 @@ func (a *App) work(ctx context.Context, q *queue, model bool) {
 				continue
 			}
 		}
+		// Someone is waiting on a chat answer: start no new review until it is answered. A review already running
+		// finishes first; the model is then the chat's.
+		if model && a.chats.Load() > 0 {
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(300 * time.Millisecond):
+				continue
+			}
+		}
 		j, ok := q.Pop()
 		if !ok && model && (a.cfg.Deep || a.cfg.Older) { // nothing waits: read recent commits deeply, then the older ones
 			if sha, opt := review.NextIdle(a.store, a.repo, a.cfg.History, a.cfg.Deep, a.cfg.Older); sha != "" {

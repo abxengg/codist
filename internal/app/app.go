@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/abxengg/codist-behaviour"
@@ -25,6 +26,8 @@ import (
 
 // App is one running Codist for one repository.
 type App struct {
+	// chats counts the chat answers being waited for; while any is, the model lane starts no new review.
+	chats    atomic.Int32
 	cfg      config.Config
 	repo     *git.Repo
 	model    *model.Client

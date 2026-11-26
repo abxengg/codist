@@ -122,9 +122,6 @@ The script runs with no file, network or OS access. Environment variables overri
 
 What does not work yet, and what is planned, is tracked in [the open work list](https://github.com/abxengg/codist/issues/6). The most important:
 
-- **Only Ollama's interface.** Codist talks to a model server through Ollama's API. Servers that speak only the
-  OpenAI-style API, such as LM Studio and llama.cpp's server, are not supported yet
-  ([codist-model#1](https://github.com/abxengg/codist-model/issues/1)). Install Ollama next to them.
 - **Very large commits and histories are reviewed thinly.** Checking a history of a million commits takes about a
   day ([#1](https://github.com/abxengg/codist/issues/1)); very large commits are planned by the model, not split
   ([codist-review#1](https://github.com/abxengg/codist-review/issues/1)).

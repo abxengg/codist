@@ -201,6 +201,8 @@ func (a *App) chat(w http.ResponseWriter, r *http.Request) {
 			said.WriteString(t.Content + " ")
 		}
 	}
+	a.chats.Add(1) // the model lane holds back new reviews until this answer is done
+	defer a.chats.Add(-1)
 	ix := a.index()
 	picked := chatPick(ix, append(chatWords(said.String()), chatWords(q)...), in.Path)
 
