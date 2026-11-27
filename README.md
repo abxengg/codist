@@ -52,7 +52,7 @@ A bug counts as found when an alarm (not a note) lands within 6 lines of it; a c
 
 v0.12.0 was measured on 2026-11-27 by replaying the model's first readings of the v0.11.2 run with the v0.12.0
 rules; a fresh run differs somewhat, because the model's answers vary from run to run. Most of the gain came from
-four bugs the model had found and Codist's own filters had hidden. What changed and why, with the research behind
+five bugs the model had found and Codist's own filters had hidden. What changed and why, with the research behind
 each change: [abxengg/codist#19](https://github.com/abxengg/codist/issues/19).
 
 **Real bugs.** 119 bugs from real Java projects (Defects4J and GitBug-Java), each put back into its project and

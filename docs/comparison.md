@@ -222,9 +222,9 @@ difference is the rules, not the model's mood; files whose first reading had fai
 | maze-lab | 16 of 19 | 19 of 19 | 1 of 3 | 1 of 3 |
 | all | 54 of 62 | **60 of 62** | 2 of 14 | **1 of 14** |
 
-- **4 of v0.11.2's 8 misses had been found by the model** and hidden by Codist's filters: three choices whose
-  letters followed the order while both reasons argued the bug, and one quote of the removed line. Kept now.
-- **One more from a null claim** the change backed by removing a `getOrDefault`.
+- **5 of v0.11.2's 8 misses had been found by the model** and hidden by Codist's filters: three choices whose
+  letters followed the order while both reasons argued the bug, one quote of the removed line, and one null claim
+  the change backed by removing a `getOrDefault`. Kept now.
 - **One from the new `unserved-call` check**: shop-lab's Feign client calling `/payments/charges`, which
   payment-service does not serve.
 - **The records-lab alarm is gone**: the yes-or-no second look's "could not tell" (and, in the first run, a failed
