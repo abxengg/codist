@@ -111,6 +111,17 @@ ollama pull qwen3.5:9b             # about 8 GB; the default. On 8 GB of memory 
 
 Or skip the pull: with Ollama running, Codist's Now page offers to download the model and shows its progress.
 
+Other commands, run in the repository:
+
+| Command | What it does |
+|---|---|
+| `codist --no-open` | start without opening the browser |
+| `codist top [url]` | a live view, in the terminal, of a Codist already running |
+| `codist doctor` | the installer's checks: git, Java, the model server and model |
+| `codist trust` | agree to the settings in `.codist/config.lua` that wait for you (see [Settings](#settings)) |
+| `codist training > findings.jsonl` | export model findings whose outcome is known, one example per line |
+| `codist version`, `codist upgrade [vX.Y.Z]` | show the version, or update to the latest (or a given) release |
+
 The full walk-through, with settings and fixes for common problems, is in
 [docs/getting-started.md](docs/getting-started.md).
 
@@ -128,7 +139,9 @@ ignore = { "target/", "build/", "generated/" }
 behaviour = false        -- run changed methods before and after each recent commit; runs your code, needs a JDK
 ```
 
-The script runs with no file, network or OS access. Environment variables override it for one run:
+The script runs with no file, network or OS access. Because the file comes with the repository, two settings in it
+wait for your word: `behaviour = true`, which runs the repository's code, and a `model.url` on another machine,
+which sends your code there. Run `codist trust` in the repository once to agree. Environment variables override it for one run:
 `PORT`, `CODIST_MODEL`, `CODIST_MODEL_URL`, `CODIST_MODEL_REVIEW=false`, `CODIST_HISTORY`, `CODIST_OLDER=1`, `CODIST_TWICE=1`, `CODIST_FIRST_WORD`, `CODIST_BEHAVIOUR=1`,
 `CODIST_DATA_DIR`, `CODIST_LOG=debug`, `CODIST_LOG_JSON=1`.
 
