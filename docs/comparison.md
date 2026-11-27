@@ -1,4 +1,13 @@
-# v0.6.0 against the next version
+# Each version measured
+
+How each version of Codist did on the same tests, newest last. Jump to:
+[v0.11.2 against v0.12.0](#v0112-against-v0120-2026-11-26-and-27),
+[real bugs, v0.9.0](#real-bugs-v090-2026-11-18),
+[v0.8.0 against v0.7.0](#v080-against-v070-2026-11-15-and-16-qwen359b-clean-runs),
+[three models on maze-lab](#three-models-on-maze-lab),
+[v0.6.0 against the next version](#v060-against-the-next-version-2026-11-14).
+
+## v0.6.0 against the next version (2026-11-14)
 
 Measured on 2026-11-14 on a 16 GB Mac. "Before" is the released v0.6.0 built from its tag; "after" is the working
 tree of the same evening (codist-review v0.11.0 to be). Each run started from an empty data folder. The model is
