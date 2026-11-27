@@ -170,9 +170,15 @@ for each review, so edits apply to the next commit it reads.
 
 ## 5. Using it
 
+The sidebar keeps **Now**, **Issues**, **Commits** and **Chat** in view; **Incidents**, **Map**, **Activity** and
+**Repository** are under **More**, which opens by itself when one of them is on screen.
+
+- **Now** says what the AI is doing, what needs your attention and what changed. When Ollama runs but lacks the
+  model, it offers **Download it**.
 - **Issues** lists every open issue. **Filter** narrows it by type, urgency, change and **Found by**: the AI model or
   the code checks. An issue that both reported counts under both. Issues found by the model carry an **AI** tag.
-- **Review** lists commits newest first. Pick one to see its diff with issues next to the lines. Issues from code
+- **Commits** lists commits newest first, with the branch graph and three dots per commit for the code checks, the
+  AI and behaviour runs. Pick one to see its diff with issues next to the lines. Issues from code
   checks are exact; issues from the model show the line it quoted, and claims Codist could not confirm are shown as
   notes, as is anything the model itself rates minor. A merge commit is reviewed on what was written by hand to
   settle its conflicts. Mark an issue resolved by hand, or let the commit that fixes it close it.
@@ -181,6 +187,9 @@ for each review, so edits apply to the next commit it reads.
   (Codist could not back it, the model rated it minor, or a run showed a change the commit message does not
   explain). Only proven and likely findings open issues.
 - **Older commits** (`older = true`): the model normally reads only the last `history` commits. With this on, whenever it has nothing else to read it goes back past them, one commit at a time, newest first. A new commit always goes first. On a laptop this is about a minute per commit, so a long history takes days of idle time; a restart carries on where it stopped. Not measured yet.
+- **Read twice** (`twice = true`): every commit's files are read a second time and what only the second reading
+  finds is added; normally only commits the risk model rates high are. In a test on the three labs it found 3 more
+  of the 62 planted bugs, at about double the model time ([codist-eval#4](https://github.com/abxengg/codist-eval/issues/4)).
 - **Deep pass** (`deep = true`): when the model has nothing else to read, it reads recent commits again, once as a
   specialist in failures (nulls, exceptions, loops) and once as a specialist in your team's rules, and adds what
   only those readings find. New commits always come first. It uses the machine while you are not waiting for it.
@@ -194,8 +203,8 @@ for each review, so edits apply to the next commit it reads.
   side, and whether it still builds and passes the tests. **Apply & commit** commits just that fix; **Suggest how to
   fix it…** asks for it your way; **Reject…** with a reason is remembered for later fixes.
 - **What the model did, on each commit**: every finding the model kept or demoted has **How Codist decided**, the
-  checks it went through in order (the quote, exact checks, the second look with the line it quoted as proof, the
-  choice between the claim and its opposite, the learned filter). The **Model** card shows what the model
+  checks it went through in order (the quote, exact checks, the choice between the claim and its opposite asked in
+  both orders, the learned filter). The **Model** card shows what the model
   understood in each file it read (what changed, who sees a different result, what your rules say it must be) and
   every claim Codist threw away, with why: a quote not in the code, a line a check already reports, a repeat.
 - **Checks learned from your fixes**: when the model reads a commit that fixes something, it writes a pattern for
@@ -211,7 +220,9 @@ for each review, so edits apply to the next commit it reads.
   totals, recent calls and the log. `codist top http://host:port` watches a Codist on another address. Press q.
 - **Activity** shows the three lanes (code checks, AI model, behaviour runs) with what runs now, what waits and what
   finished, every model call with the exact prompt and reply, and the live log. Use it to see why a review is slow.
-- **Graph** draws services, then classes, then methods, with Feign calls between services. Pick a commit to see
+- **Chat** answers questions about the codebase from the classes they are about, the services and the open issues,
+  with links to the files and lines it used. While you wait for an answer, the AI starts no new review.
+- **Map** draws services, then classes, then methods, with Feign calls between services. Pick a commit to see
   what it changed and what depends on that. Right-click a class for its blast radius.
 - **Incidents**: paste logs from a failing service. Codist finds each Java error, the line in your code, the commit
   that last changed it, and a short list of suspect commits; with a model it suggests causes and checks every line

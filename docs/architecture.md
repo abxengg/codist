@@ -53,18 +53,25 @@ through an interface (`incident.Code`) instead of importing the parser or git.
 3. **Baseline**, the first time only: run the code checks on the whole code and credit each issue to the commit that
    last changed its line.
 4. **Three lanes** work through the commits, newest first (the third only when turned on):
-   - the **check lane** runs the exact code checks, milliseconds a commit, and never waits for the model;
-   - the **model lane** asks the model about each changed file of recent commits (the last 50 by default).
+   - the **check lane** runs the exact code checks, milliseconds a commit, and never waits for the model; it skips a
+     commit the model has already read, since the model's review runs the checks too;
+   - the **model lane** asks the model about each changed file of recent commits (the last 50 by default). On a first
+     run it starts with the three recent commits most likely to hold a bug. A call that gets no word in 3 minutes
+     ends, and the commit is tried again;
    - the **behaviour lane**, only when turned on, builds each recent commit and its parent and runs the changed
      methods on both with the same inputs.
    A new commit goes to the front of each. A restart picks up whatever was not finished.
 5. **Each model claim is checked** before it is stored, in three steps:
-   - it must quote code near the line it names, or it is dropped;
+   - it must quote code near the line it names, in the file after the change or among the lines the change
+     removed, or it is dropped;
    - exact facts settle what they can: a null claim needs a value that is dereferenced, "strings compared with ==" is
      checked by the type-aware check on that line, and "not implemented" is checked against the commit's other files
-     (the model also sees those files' changes);
-   - a serious claim that survives gets a second look, and stays an alarm only when the model quotes code that proves
-     it. Anything contradicted or unproven is kept as a note, with the reason.
+     (the model also sees those files' changes); a removed `getOrDefault` or `orElse` counts as a source of null;
+   - a serious claim that survives gets a second look: the model chooses between the claim and "the code is fine",
+     asked twice with the two in swapped order. It stays an alarm when the model picks the claim both times, or when
+     its answers follow the order but both of its reasons are about the claim (kept at medium, for a person to
+     judge). Anything it sides against, or cannot decide on, is kept as a note, with the reason. A model call that
+     fails leaves the finding as it was.
 6. **Issues are followed** by a key of rule or title, file and the flagged line, so a later commit that removes the
    problem closes the issue.
 7. **The page** reads everything through the JSON API, compressed with gzip, and gets live updates through server

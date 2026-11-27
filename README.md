@@ -13,12 +13,16 @@ watches the repository, and shows what it finds in your browser:
   decision and why. One click has a skipped file read after all.
 - **Numbers your documents state**: a commit that changes a number your README or spec still states with the old
   value is reported, with the sentence quoted. No model needed.
+- **Calls between services**: a Feign client call to a route its service, in the same repository, does not serve is
+  reported at the changed line, with the routes that service does serve. No model needed.
+- **Chat**: ask about your codebase. Codist finds the classes the question is about and gives the local model their
+  code, the services and the open issues; the answer links the files and lines it used.
 - **Fix**: for a real bug, the model prepares a small fix and says why. You see the current and proposed code side by
   side, the fix is built and tested in a separate copy first, and only when you approve is it committed (just its own
   files). Tell it how you want it fixed, or reject it and say why; it remembers.
 - **Activity**: what Codist is doing right now: what code checks, the AI model and behaviour runs are working on, what
   waits and what just finished, every model call with its prompt and reply, and the log as it happens.
-- **Graph**: your services, classes and methods on one canvas, with Feign calls between services, what the selected
+- **Map**: your services, classes and methods on one canvas, with Feign calls between services, what the selected
   commit changed and what that change can affect.
 - **Incidents**: paste production logs to see each error, the line of your code it came from, and the commit that
   last changed that line. The model can suggest a cause.
@@ -27,6 +31,7 @@ watches the repository, and shows what it finds in your browser:
   inputs, in a sandbox on macOS and Linux, and shows what now behaves differently. A commit that says it only
   tidies but changes results gets an issue; the model is shown the changed results as facts.
 
+The sidebar keeps Now, Issues, Commits and Chat in view; Incidents, Map, Activity and Repository are under **More**.
 Nothing leaves your machine. Codist never changes your code unless you approve a fix.
 
 ## How well it finds bugs
@@ -39,18 +44,24 @@ A bug counts as found when an alarm (not a note) lands within 6 lines of it; a c
 
 | Project | What it is | Bugs found | Clean commits with an alarm |
 |---|---|---|---|
-| [records-lab](https://github.com/AbiXnash/records-lab) | a Spring Boot gateway: JSON, XML, CSV and GraphQL over JDBC | 18 of 19 | 1 of 5 |
-| [shop-lab](https://github.com/AbiXnash/shop-lab) | two Spring Boot services: Feign, Redis, Spring Batch, JDBC | 21 of 24 | 0 of 6 |
-| [maze-lab](https://github.com/AbiXnash/maze-lab) | a Java Swing game written to a design spec | 18 of 19 | 0 of 3 |
-| all | | **57 of 62** | **1 of 14** |
+| [records-lab](https://github.com/AbiXnash/records-lab) | a Spring Boot gateway: JSON, XML, CSV and GraphQL over JDBC | 18 of 19 | 0 of 5 |
+| [shop-lab](https://github.com/AbiXnash/shop-lab) | two Spring Boot services: Feign, Redis, Spring Batch, JDBC | 23 of 24 | 0 of 6 |
+| [maze-lab](https://github.com/AbiXnash/maze-lab) | a Java Swing game written to a design spec | 19 of 19 | 1 of 3 |
+| all, v0.12.0 | | **60 of 62** | **1 of 14** |
+| all, v0.11.2 | | 54 of 62 | 2 of 14 |
+
+v0.12.0 was measured on 2026-11-27 by replaying the model's first readings of the v0.11.2 run with the v0.12.0
+rules; a fresh run differs somewhat, because the model's answers vary from run to run. Most of the gain came from
+four bugs the model had found and Codist's own filters had hidden. What changed and why, with the research behind
+each change: [abxengg/codist#19](https://github.com/abxengg/codist/issues/19).
 
 **Real bugs.** 119 bugs from real Java projects (Defects4J and GitBug-Java), each put back into its project and
 reviewed once from scratch. The model **named the bug in 49 of 119**, was near it with a related point in 12 more,
 and showed 28 of the 49 as alarms rather than notes. Real bugs are much harder than planted ones; quote 49 of 119, not
-57 of 62. Labels are one reader's judgement, and the fixed versions were not reviewed, so this run gives no
+60 of 62. Labels are one reader's judgement, and the fixed versions were not reviewed, so this run gives no
 false-alarm rate. Details in [docs/comparison.md](docs/comparison.md#real-bugs-v090-2026-11-18).
 
-Code checks alone, with no model, find 11 of 19, 8 of 24 and 3 of 19 of the planted bugs, and at most 6 of the real
+Code checks alone, with no model, find 11 of 19, 9 of 24 and 5 of 19 of the planted bugs, and at most 6 of the real
 ones: they are exact, not broad. The model finds the bugs that need reading the change against your rules.
 
 ## Install
@@ -112,6 +123,7 @@ model = { url = "http://localhost:11434", name = "qwen3.5:9b", context = 8192 }
 max_files = 8            -- changed files per commit the model reads; checks read all of them
 history = 50             -- recent commits the model reads in the background; 0 for all. Checks cover every commit
 older = false            -- when the model is idle, also read the commits older than `history`, newest first
+twice = false            -- read every commit's files twice, not only risky ones: about double the model time
 ignore = { "target/", "build/", "generated/" }
 behaviour = false        -- run changed methods before and after each recent commit; runs your code, needs a JDK
 ```
@@ -127,6 +139,10 @@ What does not work yet, and what is planned, is tracked in [the open work list](
 - **Very large commits and histories are reviewed thinly.** Checking a history of a million commits takes about a
   day ([#1](https://github.com/abxengg/codist/issues/1)); very large commits are planned by the model, not split
   ([codist-review#1](https://github.com/abxengg/codist-review/issues/1)).
+- **Two planted bugs are still missed**: a lock that no longer expires, so one crashed run blocks settlement for good
+  (the class comment says 30 minutes), and a read-only transaction removed from an export, so it can mix data from
+  before and after a change. Both need knowledge the changed lines do not show.
+- **Calls between services are checked for Feign clients only**, and only against services in the same repository.
 - **A written spec is followed only partly.** With your rules in `.codist/rules.md`, the model catches most broken
   rules. Changed numbers that a document states are caught without the model; other rules it sometimes misses.
 - **A full review has not been run on Windows or Linux by a person.** Tests, the installers and the sandbox run on

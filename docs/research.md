@@ -21,10 +21,32 @@ summaries; read a paper before quoting it.
 | **Numbers the documents state** (`spec-number`, no model) | Models miss code that drifts from a document that still reads plausibly | [TRACE](https://arxiv.org/html/2604.03447v1) | Reports both changed-number commits of maze-lab that the model missed in two runs; no finding on records-lab, shop-lab or demo-shop (73 commits) |
 | **What became of the findings** (Repository page) | Production tools judge themselves by how often flagged lines are later changed | [BitsAI-CR](https://arxiv.org/abs/2501.15134), [Atlassian](https://arxiv.org/abs/2510.05450) | Counts only; it needs weeks of use to say anything |
 | **Intent of a behaviour difference** | A fix is supposed to change results; the commit message is the oracle | [Testora](https://arxiv.org/abs/2503.18597) | Right on 4 of 4 maze-lab commits with differences (two "Simplify" commits with planted bugs marked not covered, two announced changes marked covered); too few to rely on |
-| **Second reading of high-risk commits** | Combining several reviews raised F1 by up to 43.7% | [SWR-Bench](https://arxiv.org/abs/2509.01494) | Not measured. One more model call per file, only where the risk model says high |
+| **Second reading of high-risk commits** | Combining several reviews raised F1 by up to 43.7% | [SWR-Bench](https://arxiv.org/abs/2509.01494) | With every file read twice (`twice = true`), the labs went from 57 to 60 of 62 at about double the model time (2026-11-27, measured with rules later changed; [codist-eval#4](https://github.com/abxengg/codist-eval/issues/4)) |
 | **Reverted commits as bug labels** | SZZ labels are 14 to 50% noisy; a revert names its commit | [ReDef](https://arxiv.org/abs/2509.09192) | Unit tested |
 | **Reads first, second looks after** | A model server reuses its work only on a prompt that starts like the last one | [llama.cpp](https://github.com/ggml-org/llama.cpp/discussions/13606) | Not measured |
 | **`codist training`** | A small model with an adapter trained on accepted and rejected findings beat prompting a large one (about 76% against 64% F1, one study) | [CodeRabbit feedback study](https://arxiv.org/pdf/2607.03316) | Export only |
+
+## Checked against research before it shipped (v0.12.0)
+
+After the lab run of 2026-11-26 (54 of 62 planted bugs, 2 of 14 clean commits alarmed), each idea for improving the
+findings was checked against published work first, and two were dropped because the research pointed the other
+way. Each change kept was then measured by replaying the labs from the stored review trails. Plan and results:
+[abxengg/codist#19](https://github.com/abxengg/codist/issues/19).
+
+| Idea | What the research says | Source | Outcome here |
+|---|---|---|---|
+| Drop the yes-or-no "is the reviewer right?" question | A model checking its own reasoning without outside feedback does not improve it and can make it worse; self-critique collapses where sound outside checks help; models agree with what a question suggests | [Huang et al., ICLR 2024](https://arxiv.org/abs/2310.01798), [Stechly et al.](https://arxiv.org/abs/2402.08115), [Sharma et al., ICLR 2024](https://arxiv.org/abs/2310.13548) | Done. It had said yes 45 times in 49, and its "could not tell" let both clean-commit alarms of the replays through |
+| Ask the A/B choice only once | Swapping the order of two options changes a model's verdict; ask in both positions | [Wang et al., ACL 2024](https://aclanthology.org/2024.acl-long.511.pdf), [Zheng et al.](https://arxiv.org/abs/2306.05685) | Dropped: both orders kept |
+| Keep a choice whose answers follow the order | Send position-inconsistent cases to a person; a model's letter can follow a bias its explanation does not mention; inconsistency is highest on close calls | Wang et al., [Turpin et al., NeurIPS 2023](https://arxiv.org/abs/2305.04388), [Shi et al.](https://arxiv.org/abs/2406.07791) | Done, as a medium alarm when both reasons are about the claim: 3 real bugs kept, 1 false alarm |
+| Keep a filter stage at all | A detector plus a filter reaches 75% precision in production; tools whose findings people do not act on get switched off | [BitsAI-CR](https://arxiv.org/abs/2501.15134), [Sadowski et al., CACM 2018](https://cacm.acm.org/magazines/2018/4/226371-lessons-from-building-static-analysis-tools-at-google/pdf) | Kept |
+| Delete the second reading | Several reviews combined raise F1 by up to 43.67%; sampling several answers improves accuracy | [SWR-Bench](https://arxiv.org/abs/2509.01494), [Wang et al., ICLR 2023](https://arxiv.org/abs/2203.11171) | Dropped; measured instead: +3 bugs at double the time |
+| Exact check for calls between services | Pair a model with sound outside checkers; static recovery of Feign calls and cross-service change impact | [Stechly et al.](https://arxiv.org/abs/2402.08115), [arXiv 2404.01789](https://arxiv.org/pdf/2404.01789), [arXiv 2501.11778](https://arxiv.org/html/2501.11778v1) | Done (`unserved-call`): finds shop-lab's cross-service bug; no report on 11 clients of Orbit Commerce |
+| A limit on the wait for the first word | Client libraries keep first-word, gap and whole-call timers apart; queueing lengthens the first-word wait | [BAML](https://docs.boundaryml.com/guide/baml-basics/timeouts), [LiteLLM](https://docs.litellm.ai/docs/proxy/timeout.md), [Red Hat](https://developers.redhat.com/articles/2025/08/08/ollama-vs-vllm-deep-dive-performance-benchmarking) | Done: 3 minutes, against 63 s at most over 288 calls |
+| A different model as judge | Models favour their own output; but same-model review in a fresh session matched another model on code | [Panickssery et al., NeurIPS 2024](https://arxiv.org/abs/2404.13076), [cross-model review study](https://arxiv.org/pdf/2610.01471) | Not done |
+
+Tried and undone: asking the judge to quote the line that proves the claim. It sided with the code on three real
+bugs whose proof it said it could not see (57 of 62 instead of 59), and quoting a real line did not stop a false
+reason. The final rules found 60 of 62 with 1 of 14 clean commits alarmed.
 
 ## Making the parts around the model do more
 

@@ -208,3 +208,31 @@ comparison of each finding with the real fix. A first attempt committed each bug
 model read; those results were thrown away. Labels and results:
 [codist-eval/review/results](https://github.com/abxengg/codist-eval/tree/main/review/results).
 
+
+## v0.11.2 against v0.12.0 (2026-11-26 and 27)
+
+v0.11.2 was run on fresh copies of the three labs, built by their scripts, with `qwen3.5:9b` reading every commit.
+v0.12.0 was measured by replaying the same labs from that run's cached first readings with the new rules, so the
+difference is the rules, not the model's mood; files whose first reading had failed were read afresh.
+
+| Project | Bugs found, v0.11.2 | v0.12.0 | Clean commits with an alarm, v0.11.2 | v0.12.0 |
+|---|---|---|---|---|
+| shop-lab | 20 of 24 | 23 of 24 | 0 of 6 | 0 of 6 |
+| records-lab | 18 of 19 | 18 of 19 | 1 of 5 | 0 of 5 |
+| maze-lab | 16 of 19 | 19 of 19 | 1 of 3 | 1 of 3 |
+| all | 54 of 62 | **60 of 62** | 2 of 14 | **1 of 14** |
+
+- **4 of v0.11.2's 8 misses had been found by the model** and hidden by Codist's filters: three choices whose
+  letters followed the order while both reasons argued the bug, and one quote of the removed line. Kept now.
+- **One more from a null claim** the change backed by removing a `getOrDefault`.
+- **One from the new `unserved-call` check**: shop-lab's Feign client calling `/payments/charges`, which
+  payment-service does not serve.
+- **The records-lab alarm is gone**: the yes-or-no second look's "could not tell" (and, in the first run, a failed
+  call) had kept the claim without the choice. Now every serious claim goes to the choice, which sided with the code.
+- **The maze-lab alarm changed**: v0.11.2's was the console-print check on an error message in a project with no
+  logger (now not flagged); v0.12.0's is a model claim on "Add M to mute" whose two answers split, kept at medium.
+- **Tried and undone**: making the judge quote proof gave 57 of 62.
+- **Fix compile rate** (v0.11.2, shop-lab, 10 open issues): 5 compiled on the first try, 9 after retrying with the
+  compiler's errors.
+
+Plan, research and every replay: [abxengg/codist#19](https://github.com/abxengg/codist/issues/19).
