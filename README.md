@@ -139,9 +139,9 @@ What does not work yet, and what is planned, is tracked in [the open work list](
 - **Very large commits and histories are reviewed thinly.** Checking a history of a million commits takes about a
   day ([#1](https://github.com/abxengg/codist/issues/1)); very large commits are planned by the model, not split
   ([codist-review#1](https://github.com/abxengg/codist-review/issues/1)).
-- **Two planted bugs are still missed**: a lock that no longer expires, so one crashed run blocks settlement for good
-  (the class comment says 30 minutes), and a read-only transaction removed from an export, so it can mix data from
-  before and after a change. Both need knowledge the changed lines do not show.
+- **Two planted bugs are missed by v0.12.0**: cancelling an order puts back the quantity ordered instead of the
+  quantity reserved (shop-lab's rule 5), and a read-only transaction removed from an export, so it can mix data from
+  before and after a change. A check for the second is on the main branch, not yet released.
 - **Calls between services are checked for Feign clients only**, and only against services in the same repository.
 - **A written spec is followed only partly.** With your rules in `.codist/rules.md`, the model catches most broken
   rules. Changed numbers that a document states are caught without the model; other rules it sometimes misses.
