@@ -36,7 +36,7 @@ flowchart LR
 | **codist-review** | reviewing one commit, checking model claims, following issues across commits, the first-run baseline; `store/` keeps reviews, issues and incidents in SQLite; `risk/` ranks commits; `activity/` holds the work lanes, keeps and streams the log and records model calls | java, git, model |
 | **codist-fix** | preparing a fix with the model, building and testing it in a separate copy, committing only its files after a person approves | git, model, review |
 | **codist-behaviour** | running the methods a commit changed before and after it with a fixed Java harness, building with Maven or javac | java, git |
-| **codist-java** | the Java parser (pure-Go tree-sitter), 19 code checks and 3 habit checks, types and Spring facts, the class graph, the call graph, the Repository page numbers | none |
+| **codist-java** | the Java parser (pure-Go tree-sitter), 21 code checks and 3 habit checks, types and Spring facts, the class graph, the call graph, the Repository page numbers | none |
 | **codist-git** | commits, changed lines, files at any commit, blame and branches through the git command; `testrepo/` builds a sample repository for tests | none |
 | **codist-model** | the model server client; `incident/` reads production logs and analyses incidents | none |
 | **codist-ui** | the Svelte interface; its built `dist/` is committed and embedded | none |
